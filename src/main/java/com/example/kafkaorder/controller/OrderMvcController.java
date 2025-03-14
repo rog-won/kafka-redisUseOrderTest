@@ -26,14 +26,14 @@ public class OrderMvcController {
     @GetMapping
     public String listOrders(Model model) {
         model.addAttribute("orders", orderService.getAllOrders());
-        return "orders"; // 예: src/main/resources/templates/orders.html
+        return "/view/order/orders"; // 예: src/main/resources/templates/orders.html
     }
 
     // 신규 주문 생성 폼 호출
     @GetMapping("/new")
     public String newOrderForm(Model model) {
         model.addAttribute("order", new Order());
-        return "orderForm"; // 예: src/main/resources/templates/orderForm.html
+        return "/view/order/orderForm"; // 예: src/main/resources/templates/orderForm.html
     }
 
     // 폼 제출 시 주문 저장 (DB에 직접 저장)
