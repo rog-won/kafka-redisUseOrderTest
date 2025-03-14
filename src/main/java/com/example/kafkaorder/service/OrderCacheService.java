@@ -6,7 +6,6 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class OrderCacheService {
-
     private final RedisTemplate<String, Order> redisTemplate;
 
     public OrderCacheService(RedisTemplate<String, Order> redisTemplate) {
@@ -20,5 +19,4 @@ public class OrderCacheService {
     public Order getOrder(String orderId) {
         return redisTemplate.opsForValue().get(orderId);
     }
-
 }
