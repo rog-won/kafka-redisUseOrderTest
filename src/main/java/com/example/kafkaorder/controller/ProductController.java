@@ -21,14 +21,14 @@ public class ProductController {
     @GetMapping
     public String listProducts(Model model) {
         model.addAttribute("products", productService.getAllProducts());
-        return "products"; // templates/products.html
+        return "/view/product/products"; // templates/products.html
     }
 
     // 신규 제품 등록 폼 호출
     @GetMapping("/new")
     public String newProductForm(Model model) {
         model.addAttribute("product", new Product());
-        return "productForm"; // templates/productForm.html
+        return "/view/product/productForm"; // templates/productForm.html
     }
 
     // 제품 등록 처리
