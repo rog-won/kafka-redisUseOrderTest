@@ -5,6 +5,7 @@
     <title>새 주문 생성</title>
 </head>
 <body>
+<div th:insert="fragment/fragments :: nav"></div>
 <h1>새 주문 생성</h1>
 <form th:action="@{/orders}" th:object="${order}" method="post">
     <label>주문 ID: <input type="text" th:field="*{orderId}" /></label><br>

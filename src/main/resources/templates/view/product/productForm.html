@@ -5,6 +5,7 @@
   <title>신규 제품 등록</title>
 </head>
 <body>
+<div th:insert="fragment/fragments :: nav"></div>
 <h1>신규 제품 등록</h1>
 <form th:action="@{/products}" th:object="${product}" method="post">
   <label>제품 ID: <input type="text" th:field="*{productId}" required /></label><br>
