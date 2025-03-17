@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>새 창고 등록</title>
+</head>
+<body>
+<div th:insert="fragment/fragments :: nav"></div>
+<h1>새 창고 등록</h1>
+<form th:action="@{/warehouses}" th:object="${warehouse}" method="post">
+  <!-- 기본 키는 자동 생성되므로 입력하지 않습니다. -->
+  <label>창고 코드: <input type="text" th:field="*{code}" required /></label><br>
+  <label>창고 이름: <input type="text" th:field="*{name}" required /></label><br>
+  <label>위치: <input type="text" th:field="*{location}" /></label><br>
+  <button type="submit">등록</button>
+</form>
+<a th:href="@{/warehouses}">창고 목록 보기</a>
+</body>
+</html>

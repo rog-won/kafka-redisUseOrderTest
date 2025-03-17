@@ -25,6 +25,9 @@ public class Order {
     // 주문 상태: 예) CREATED, ACCEPTED, REJECTED 등
     private String status;
 
+    // 새 필드: 주문이 처리될 창고 ID
+    private String warehouseCode;
+
     @PrePersist
     public void generateId() {
         if (orderId == null || orderId.trim().isEmpty()) {

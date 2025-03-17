@@ -2,16 +2,14 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>새 주문 생성</title>
+    <title>재고 입고 등록</title>
 </head>
 <body>
-<div th:insert="~{fragment/fragments :: nav}"></div>
-<h1>새 주문 생성</h1>
-<div th:if="${error}" style="color:red;" th:text="${error}"></div>
-<form th:action="@{/orders}" th:object="${order}" method="post">
-    <!-- 주문 ID는 자동 생성되므로 입력 필드 제거 -->
+<div th:insert="fragment/fragments :: nav"></div>
+<h1>재고 입고 등록</h1>
+<form th:action="@{/inventory/inbound}" th:object="${inventoryInbound}" method="post">
     <label>제품:
-        <select th:field="*{product.productId}" required>
+        <select th:field="*{productId}" required>
             <option value="">--제품 선택--</option>
             <option th:each="prod : ${products}"
                     th:value="${prod.productId}"
@@ -22,13 +20,12 @@
         <select th:field="*{warehouseCode}" required>
             <option value="">--창고 선택--</option>
             <option th:each="wh : ${warehouses}"
-                    th:value="${wh.code}"
-                    th:text="${wh.name + ' (' + wh.code + ')'}"></option>
+                    th:value="${wh.warehouseCode}"
+                    th:text="${wh.name}"></option>
         </select>
     </label><br>
     <label>수량: <input type="number" th:field="*{quantity}" required /></label><br>
-    <button type="submit">생성</button>
+    <button type="submit">입고 등록</button>
 </form>
-<a th:href="@{/orders}">주문 목록 보기</a>
 </body>
 </html>

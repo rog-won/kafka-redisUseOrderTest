@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>창고 목록</title>
+</head>
+<body>
+<div th:insert="~{fragment/fragments :: nav}"></div>
+<h1>창고 목록</h1>
+<table border="1">
+    <thead>
+    <tr>
+        <th>창고 코드</th>
+        <th>창고 이름</th>
+        <th>위치</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="wh : ${warehouses}">
+        <td th:text="${wh.code}">창고 코드</td>
+        <td th:text="${wh.name}">창고 이름</td>
+        <td th:text="${wh.location}">위치</td>
+    </tr>
+    </tbody>
+</table>
+<br>
+<a th:href="@{/warehouses/new}">새 창고 등록</a>
+</body>
+</html>

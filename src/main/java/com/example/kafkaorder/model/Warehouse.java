@@ -1,8 +1,6 @@
 package com.example.kafkaorder.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -14,7 +12,12 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class Warehouse {
     @Id
-    private String warehouseId; // 예: "1", "2", "3"
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(unique = true, nullable = false)
+    private String code; // 예: "1", "2", "3"
+
     private String name;
     private String location; // 필요 시
 }

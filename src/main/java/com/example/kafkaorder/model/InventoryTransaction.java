@@ -15,7 +15,7 @@ public class InventoryTransaction {
     private Long transactionId;
 
     private String productId;
-    private String warehouseId;
+    private String code;
     private int quantity;
 
     // "INBOUND" 또는 "OUTBOUND"
