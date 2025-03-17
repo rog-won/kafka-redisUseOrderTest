@@ -5,13 +5,18 @@
     <title>새 주문 생성</title>
 </head>
 <body>
-<!--추가-->
 <div th:insert="fragment/fragments :: nav"></div>
 <h1>새 주문 생성</h1>
 <form th:action="@{/orders}" th:object="${order}" method="post">
-    <label>주문 ID: <input type="text" th:field="*{orderId}" /></label><br>
-    <label>제품 ID: <input type="text" th:field="*{product.productId}" /></label><br>
-    <label>수량: <input type="number" th:field="*{quantity}" /></label><br>
+    <label>제품:
+        <select th:field="*{product.productId}" required>
+            <option value="">--제품 선택--</option>
+            <option th:each="prod : ${products}"
+                    th:value="${prod.productId}"
+                    th:text="${prod.name}"></option>
+        </select>
+    </label><br>
+    <label>수량: <input type="number" th:field="*{quantity}" required /></label><br>
     <button type="submit">생성</button>
 </form>
 </body>

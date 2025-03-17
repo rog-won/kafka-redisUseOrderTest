@@ -3,6 +3,7 @@ package com.example.kafkaorder.controller;
 import com.example.kafkaorder.model.Order;
 import com.example.kafkaorder.service.InventoryService;
 import com.example.kafkaorder.service.OrderService;
+import com.example.kafkaorder.service.ProductService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -13,13 +14,14 @@ import java.util.Optional;
 @RequestMapping("/orders")
 public class OrderMvcController {
 
-
     private final OrderService orderService;
-    private final InventoryService inventoryService;
+    private final ProductService productService;
+    private final InventoryService inventoryService; // 추가된 부분
 
-    public OrderMvcController(OrderService orderService, InventoryService inventoryService) {
+    public OrderMvcController(OrderService orderService, ProductService productService, InventoryService inventoryService) {
         this.orderService = orderService;
-        this.inventoryService = inventoryService;
+        this.productService = productService;
+        this.inventoryService = inventoryService; // 생성자 주입
     }
 
     // 주문 목록 조회 (Thymeleaf 템플릿)
@@ -32,7 +34,9 @@ public class OrderMvcController {
     // 신규 주문 생성 폼 호출
     @GetMapping("/new")
     public String newOrderForm(Model model) {
-        model.addAttribute("order", new Order());
+        Order order = new Order();
+        model.addAttribute("order", order);
+        model.addAttribute("products", productService.getAllProducts());
         return "/view/order/orderForm"; // 예: src/main/resources/templates/orderForm.html
     }
 
