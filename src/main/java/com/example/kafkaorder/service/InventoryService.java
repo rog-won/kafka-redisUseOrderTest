@@ -27,7 +27,7 @@ public class InventoryService {
      * 주문 수락 시 재고에서 주문 수량만큼 차감하고 트랜잭션 기록
      */
     @Transactional
-    public void processOrderAcceptance(Order order, String warehouseId) {
+    public void processOrderAcceptance(Order order, String warehouseCode) {
         // 특정 창고의 재고 조회 (없으면 0부터 시작)
         InventoryId invId = new InventoryId(order.getProduct().getProductId(), warehouseId);
         Inventory inventory = inventoryRepository.findById(invId).orElse(new Inventory(invId, 0));
@@ -49,7 +49,7 @@ public class InventoryService {
         // 재고 출고 트랜잭션 기록
         InventoryTransaction transaction = new InventoryTransaction();
         transaction.setProductId(order.getProduct().getProductId());
-        transaction.setWarehouseId(warehouseId);
+        transaction.setCode(warehouseId);
         transaction.setQuantity(order.getQuantity());
         transaction.setType("OUTBOUND");
         transaction.setTransactionTime(LocalDateTime.now());
