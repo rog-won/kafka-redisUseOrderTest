@@ -27,14 +27,14 @@ public class InventoryService {
      * 주문 수락 시 재고에서 주문 수량만큼 차감하고 트랜잭션 기록
      */
     @Transactional
-    public void processOrderAcceptance(Order order, String warehouseCode) {
+    public void processOrderAcceptance(Order order, String Code) {
         // 특정 창고의 재고 조회 (없으면 0부터 시작)
-        InventoryId invId = new InventoryId(order.getProduct().getProductId(), warehouseId);
+        InventoryId invId = new InventoryId(order.getProduct().getProductId(), Code);
         Inventory inventory = inventoryRepository.findById(invId).orElse(new Inventory(invId, 0));
 
         // 디버깅 로그 추가
         System.out.println("재고 확인 - 제품: " + order.getProduct().getProductId() +
-                ", 창고: " + warehouseId +
+                ", 창고: " + Code +
                 ", 현재 재고: " + inventory.getQuantity() +
                 ", 주문 수량: " + order.getQuantity());
 
@@ -49,7 +49,7 @@ public class InventoryService {
         // 재고 출고 트랜잭션 기록
         InventoryTransaction transaction = new InventoryTransaction();
         transaction.setProductId(order.getProduct().getProductId());
-        transaction.setCode(warehouseId);
+        transaction.setCode(Code);
         transaction.setQuantity(order.getQuantity());
         transaction.setType("OUTBOUND");
         transaction.setTransactionTime(LocalDateTime.now());
@@ -59,15 +59,15 @@ public class InventoryService {
 
     // 신규 입고 처리 (재고 증가)
     @Transactional
-    public void processInbound(String productId, int quantity, String warehouseId) {
-        InventoryId invId = new InventoryId(productId, warehouseId);
+    public void processInbound(String productId, int quantity, String Code) {
+        InventoryId invId = new InventoryId(productId, Code);
         Inventory inventory = inventoryRepository.findById(invId).orElse(new Inventory(invId, 0));
         inventory.setQuantity(inventory.getQuantity() + quantity);
         inventoryRepository.save(inventory);
 
         InventoryTransaction transaction = new InventoryTransaction();
         transaction.setProductId(productId);
-        transaction.setWarehouseId(warehouseId);
+        transaction.setCode(Code);
         transaction.setQuantity(quantity);
         transaction.setType("INBOUND");
         transaction.setTransactionTime(LocalDateTime.now());

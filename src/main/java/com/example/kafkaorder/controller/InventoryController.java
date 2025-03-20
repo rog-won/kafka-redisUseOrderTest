@@ -44,7 +44,7 @@ public class InventoryController {
     // 입고 등록 처리
     @PostMapping("/inbound")
     public String processInbound(@ModelAttribute InventoryInboundDto inboundDto) {
-        inventoryService.processInbound(inboundDto.getProductId(), inboundDto.getQuantity(), inboundDto.getWarehouseCode());
+        inventoryService.processInbound(inboundDto.getProductId(), inboundDto.getQuantity(), inboundDto.getCode());
         return "redirect:/inventory";
     }
 }
