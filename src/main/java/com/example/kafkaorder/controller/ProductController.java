@@ -1,13 +1,13 @@
 package com.example.kafkaorder.controller;
 
-import com.example.kafkaorder.model.Product;
+import com.example.kafkaorder.entity.Product;
 import com.example.kafkaorder.service.ProductService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 @Controller
-@RequestMapping("/products")
+@RequestMapping("/product")
 public class ProductController {
 
     private final ProductService productService;
@@ -18,10 +18,10 @@ public class ProductController {
     }
 
     // 제품 목록 조회
-    @GetMapping
+    @GetMapping("/list")
     public String listProducts(Model model) {
-        model.addAttribute("products", productService.getAllProducts());
-        return "/view/product/products"; // templates/products.html
+        model.addAttribute("productList", productService.getAllProducts());
+        return "view/product/productList"; // templates/productList.html
     }
 
     // 신규 제품 등록 폼 호출
@@ -35,6 +35,6 @@ public class ProductController {
     @PostMapping
     public String createProduct(@ModelAttribute Product product) {
         productService.saveProduct(product);
-        return "redirect:/products";
+        return "redirect:/product/list";
     }
 }

@@ -1,6 +1,6 @@
 package com.example.kafkaorder.service;
 
-import com.example.kafkaorder.model.Warehouse;
+import com.example.kafkaorder.entity.Warehouse;
 import com.example.kafkaorder.repository.WarehouseRepository;
 import org.springframework.stereotype.Service;
 

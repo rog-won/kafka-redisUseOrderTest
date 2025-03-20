@@ -5,13 +5,15 @@
   <title>신규 제품 등록</title>
 </head>
 <body>
-<div th:insert="fragment/fragments :: nav"></div>
+<div th:insert="~{fragment/fragments :: nav}"></div>
 <h1>신규 제품 등록</h1>
-<form th:action="@{/products}" th:object="${product}" method="post">
-<!--  <label>제품 ID: <input type="text" th:field="*{productId}" required /></label><br>-->
-  <label>제품 이름: <input type="text" th:field="*{name}" required /></label><br>
-  <label>제품 설명: <input type="text" th:field="*{description}" /></label><br>
+<form th:action="@{/product}" th:object="${product}" method="post">
+  <label>상품명: <input type="text" th:field="*{name}" required /></label><br>
+  <label>가격: <input type="number" step="0.01" th:field="*{price}" required /></label><br>
+  <label>상세 설명:</label><br>
+  <textarea th:field="*{description}" rows="5" cols="30"></textarea><br>
   <button type="submit">등록</button>
 </form>
+<a th:href="@{/product/list}">제품 목록 보기</a>
 </body>
 </html>

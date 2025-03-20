@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>제품 목록</title>
+</head>
+<body>
+<div th:insert="~{fragment/fragments :: nav}"></div>
+<h1>제품 목록</h1>
+<table border="1">
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>상품 코드</th>
+        <th>상품명</th>
+        <th>가격</th>
+        <th>상세 설명</th>
+        <th>등록 시간</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="product : ${productList}">
+        <td th:text="${product.id}">ID</td>
+        <td th:text="${product.code}">상품 코드</td>
+        <td th:text="${product.name}">상품명</td>
+        <td th:text="${product.price}">가격</td>
+        <td th:text="${product.description}">상세 설명</td>
+        <td th:text="${#temporals.format(product.createdAt, 'yyyy-MM-dd HH:mm:ss')}">등록 시간</td>
+    </tr>
+    </tbody>
+</table>
+<br>
+<a th:href="@{/product/new}">신규 제품 등록</a>
+</body>
+</html>

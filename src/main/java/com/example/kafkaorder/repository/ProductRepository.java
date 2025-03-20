@@ -1,6 +1,6 @@
 package com.example.kafkaorder.repository;
 
-import com.example.kafkaorder.model.Product;
+import com.example.kafkaorder.entity.Product;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

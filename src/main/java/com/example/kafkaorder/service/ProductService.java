@@ -1,6 +1,6 @@
 package com.example.kafkaorder.service;
 
-import com.example.kafkaorder.model.Product;
+import com.example.kafkaorder.entity.Product;
 import com.example.kafkaorder.repository.ProductRepository;
 import org.springframework.stereotype.Service;
 
@@ -16,8 +16,8 @@ public class ProductService {
     }
 
     // 제품 저장
-    public Product saveProduct(Product product) {
-        return productRepository.save(product);
+    public void saveProduct(Product product) {
+        productRepository.save(product);
     }
 
     // 전체 제품 목록 조회

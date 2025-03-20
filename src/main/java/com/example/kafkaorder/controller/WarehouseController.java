@@ -1,6 +1,6 @@
 package com.example.kafkaorder.controller;
 
-import com.example.kafkaorder.model.Warehouse;
+import com.example.kafkaorder.entity.Warehouse;
 import com.example.kafkaorder.service.WarehouseService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
