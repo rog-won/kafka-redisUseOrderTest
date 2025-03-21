@@ -29,7 +29,7 @@ public class Product {
     private String name;
 
     @Column(nullable = false)
-    private BigDecimal price;
+    private int price;
 
     @Lob
     private String description;

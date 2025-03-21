@@ -5,6 +5,7 @@ import com.example.kafkaorder.repository.ProductRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class ProductService {
@@ -23,6 +24,10 @@ public class ProductService {
     // 전체 제품 목록 조회
     public List<Product> getAllProducts() {
         return productRepository.findAll();
+    }
+
+    public Optional<Product> findByCode(String code) {
+        return productRepository.findByCode(code);
     }
 
     // 특정 제품 조회 (필요 시)

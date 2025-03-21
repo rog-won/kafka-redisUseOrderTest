@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>새 주문 생성</title>
+</head>
+<body>
+<div th:insert="~{fragment/fragments :: nav}"></div>
+<h1>새 주문 생성</h1>
+<form th:action="@{/orders}" th:object="${orderDto}" method="post">
+  <label>제품:
+    <select th:field="*{productCode}" required>
+      <option value="">--제품 선택--</option>
+      <option th:each="prod : ${products}"
+              th:value="${prod.code}"
+              th:text="${prod.name}">
+      </option>
+    </select>
+  </label><br>
+  <label>수량: <input type="number" th:field="*{quantity}" required /></label><br>
+  <label>창고:
+    <select th:field="*{warehouseCode}" required>
+      <option value="">--창고 선택--</option>
+      <option th:each="wh : ${warehouses}"
+              th:value="${wh.code}"
+              th:text="${wh.name + ' (' + wh.code + ')'}"></option>
+    </select>
+  </label><br>
+  <button type="submit">주문 생성</button>
+</form>
+<a th:href="@{/orders}">주문 목록 보기</a>
+</body>
+</html>

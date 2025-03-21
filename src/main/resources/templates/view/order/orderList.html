@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>주문 목록</title>
+</head>
+<body>
+<div th:insert="~{fragment/fragments :: nav}"></div>
+<h1>주문 목록</h1>
+<table border="1">
+  <thead>
+  <tr>
+    <th>주문 코드</th>
+    <th>제품명</th>
+    <th>수량</th>
+    <th>상태</th>
+    <th>창고 코드</th>
+    <th>등록 시간</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr th:each="order : ${orders}">
+    <td th:text="${order.code}">주문 코드</td>
+    <td th:text="${order.product.name}">제품명</td>
+    <td th:text="${order.quantity}">수량</td>
+    <td th:text="${order.status}">상태</td>
+    <td th:text="${order.warehouse.code}">창고 코드</td>
+    <td th:text="${#temporals.format(order.createdAt, 'yyyy-MM-dd HH:mm:ss')}">등록 시간</td>
+  </tr>
+  </tbody>
+</table>
+<br>
+<a th:href="@{/orders/new}">새 주문 생성</a>
+</body>
+</html>
