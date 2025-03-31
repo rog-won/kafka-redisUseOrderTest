@@ -1,7 +1,6 @@
 package com.example.kafkaorder.service;
 
 import com.example.kafkaorder.dto.OrderDto;
-import com.example.kafkaorder.entity.Inventory;
 import com.example.kafkaorder.entity.Order;
 import com.example.kafkaorder.entity.Product;
 import com.example.kafkaorder.entity.Warehouse;
@@ -50,7 +49,7 @@ public class OrderService {
     }
 
     @Transactional
-    public Order saveOrder(Order order) {
-        return orderRepository.save(order);
+    public void saveOrder(Order order) {
+        orderRepository.save(order);
     }
 }
