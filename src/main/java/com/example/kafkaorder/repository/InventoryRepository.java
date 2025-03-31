@@ -5,10 +5,10 @@ import com.example.kafkaorder.entity.Product;
 import com.example.kafkaorder.entity.Warehouse;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import java.util.Optional;
+import java.util.List;
 
 public interface InventoryRepository extends JpaRepository<Inventory, Long> {
 
-    Optional<Inventory> findByProductAndWarehouse(Product product, Warehouse warehouse);
+    List<Inventory> findByProductAndWarehouse(Product product, Warehouse warehouse);
 
 }

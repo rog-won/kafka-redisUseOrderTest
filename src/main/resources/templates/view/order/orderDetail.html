@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>주문 상세 정보</title>
+  <style>
+    .error-message {
+      color: red;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+    .action-buttons form {
+      display: inline-block;
+      margin-right: 5px;
+    }
+    .order-detail {
+      margin-bottom: 20px;
+    }
+    .order-detail dl {
+      display: grid;
+      grid-template-columns: 150px auto;
+    }
+    .order-detail dt {
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+<div th:insert="~{fragment/fragments :: nav}"></div>
+<h1>주문 상세 정보</h1>
+
+<!-- 에러 메시지 표시 -->
+<div th:if="${errorMessage}" class="error-message" th:text="${errorMessage}"></div>
+
+<div class="order-detail">
+  <dl>
+    <dt>주문 코드:</dt>
+    <dd th:text="${order.code}">OD123456</dd>
+    
+    <dt>제품:</dt>
+    <dd th:text="${order.product.name}">제품명</dd>
+    
+    <dt>제품 코드:</dt>
+    <dd th:text="${order.product.code}">제품 코드</dd>
+    
+    <dt>수량:</dt>
+    <dd th:text="${order.quantity}">10</dd>
+    
+    <dt>상태:</dt>
+    <dd th:text="${order.status}">CREATED</dd>
+    
+    <dt>창고:</dt>
+    <dd th:text="${order.warehouse.name}">창고명</dd>
+    
+    <dt>창고 코드:</dt>
+    <dd th:text="${order.warehouse.code}">창고 코드</dd>
+    
+    <dt>등록 시간:</dt>
+    <dd th:text="${#temporals.format(order.createdAt, 'yyyy-MM-dd HH:mm:ss')}">2023-01-01 12:00:00</dd>
+  </dl>
+</div>
+
+<div class="action-buttons" th:if="${order.status == 'CREATED'}">
+  <form th:action="@{/orders/accept}" method="post">
+    <input type="hidden" name="orderId" th:value="${order.id}" />
+    <button type="submit">주문 수락</button>
+  </form>
+  <form th:action="@{/orders/cancel}" method="post">
+    <input type="hidden" name="orderId" th:value="${order.id}" />
+    <button type="submit">주문 취소</button>
+  </form>
+</div>
+
+<a th:href="@{/orders}">주문 목록으로 돌아가기</a>
+</body>
+</html> 

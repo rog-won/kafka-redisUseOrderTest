@@ -2,6 +2,7 @@ package com.example.kafkaorder.service;
 
 import com.example.kafkaorder.dto.InventoryDto;
 import com.example.kafkaorder.entity.Inventory;
+import com.example.kafkaorder.entity.Order;
 import com.example.kafkaorder.entity.Product;
 import com.example.kafkaorder.entity.Warehouse;
 import com.example.kafkaorder.repository.InventoryRepository;
@@ -39,9 +40,9 @@ public class InventoryService {
         // DTO를 엔티티로 변환
         Inventory inventory = dto.toEntity(product, warehouse);
         // 기존 재고가 있는지 조회 후 업데이트 혹은 신규 생성
-        Optional<Inventory> existingOpt = inventoryRepository.findByProductAndWarehouse(product, warehouse);
-        if(existingOpt.isPresent()){
-            Inventory existing = existingOpt.get();
+        List<Inventory> existingInventories = inventoryRepository.findByProductAndWarehouse(product, warehouse);
+        if(!existingInventories.isEmpty()){
+            Inventory existing = existingInventories.get(0);
             existing.setQuantity(existing.getQuantity() + inventory.getQuantity());
             return inventoryRepository.save(existing);
         } else {
@@ -58,9 +59,34 @@ public class InventoryService {
     public void deductInventory(Inventory inventory, int quantity) {
         int newQuantity = inventory.getQuantity() - quantity;
         if (newQuantity < 0) {
-            throw new RuntimeException("재고 부족: 제품 " + inventory.getProduct().getCode());
+            throw new RuntimeException(String.format(
+                "재고 부족: 제품 '%s', 현재 재고: %d, 필요 수량: %d", 
+                inventory.getProduct().getCode(), 
+                inventory.getQuantity(), 
+                quantity
+            ));
         }
         inventory.setQuantity(newQuantity);
         inventoryRepository.save(inventory);
+    }
+
+    @Transactional
+    public void processOrderAcceptance(Order order, String warehouseCode) {
+        // 창고와 제품으로 재고 조회
+        List<Inventory> inventories = inventoryRepository.findByProductAndWarehouse(order.getProduct(), order.getWarehouse());
+        
+        if (inventories.isEmpty()) {
+            throw new RuntimeException(String.format(
+                "재고 정보를 찾을 수 없습니다: 제품 '%s', 창고 '%s'", 
+                order.getProduct().getCode(), 
+                warehouseCode
+            ));
+        }
+        
+        // 첫 번째 재고 항목 사용
+        Inventory inventory = inventories.get(0);
+        
+        // 재고 차감
+        deductInventory(inventory, order.getQuantity());
     }
 }

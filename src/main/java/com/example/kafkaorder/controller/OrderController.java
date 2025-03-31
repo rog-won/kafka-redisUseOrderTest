@@ -10,9 +10,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.Period;
-import java.util.Optional;
-
 @Controller
 @RequestMapping("/orders")
 public class OrderController {
@@ -37,6 +34,21 @@ public class OrderController {
         return "/view/order/orderList"; // templates/orderList.html
     }
 
+    // 주문 상세 조회
+    @GetMapping("/{id}")
+    public String viewOrder(@PathVariable Long id, Model model) {
+        try {
+            Order order = orderService.getOrderById(id)
+                    .orElseThrow(() -> new RuntimeException("주문을 찾을 수 없습니다: " + id));
+            model.addAttribute("order", order);
+            return "/view/order/orderDetail";
+        } catch (Exception e) {
+            model.addAttribute("errorMessage", e.getMessage());
+            model.addAttribute("orders", orderService.getAllOrders());
+            return "/view/order/orderList";
+        }
+    }
+
     // 신규 주문 생성 폼 호출
     @GetMapping("/new")
     public String newOrderForm(Model model) {
@@ -47,27 +59,73 @@ public class OrderController {
         return "/view/order/orderForm"; // templates/orderForm.html
     }
 
+    // 주문 생성 처리
+    @PostMapping("/new")
+    public String createOrder(@ModelAttribute OrderDto orderDto) {
+        Order order = orderService.createOrderFromDto(orderDto);
+        return "redirect:/orders";
+    }
+
     //TODO
     // 주문 수락 처리: 주문 상태를 ACCEPTED로 변경하고 재고에서 주문 수량을 차감
     @PostMapping("/accept")
-    public String acceptOrder(@RequestParam Long orderId) {
-        Order order = orderService.getOrderById(orderId)
-                .orElseThrow(() -> new RuntimeException("주문을 찾을 수 없습니다: " + orderId));
-        // 재고 차감 처리 (재고 부족이면 예외 발생)
-        inventoryService.processOrderAcceptance(order, order.getWarehouseCode());
-        order.setStatus("ACCEPTED");
-        orderService.saveOrder(order);
-        return "redirect:/orders";
+    public String acceptOrder(@RequestParam Long orderId, Model model) {
+        try {
+            Order order = orderService.getOrderById(orderId)
+                    .orElseThrow(() -> new RuntimeException("주문을 찾을 수 없습니다: " + orderId));
+            
+            // 이미 처리된 주문인지 확인
+            if ("ACCEPTED".equals(order.getStatus())) {
+                throw new RuntimeException("이미 수락된 주문입니다: " + orderId);
+            }
+            
+            if ("CANCELED".equals(order.getStatus())) {
+                throw new RuntimeException("취소된 주문은 수락할 수 없습니다: " + orderId);
+            }
+            
+            // 재고 확인 및 차감 처리
+            inventoryService.processOrderAcceptance(order, order.getWarehouse().getCode());
+            
+            // 주문 상태 변경
+            order.setStatus("ACCEPTED");
+            orderService.saveOrder(order);
+            
+            return "redirect:/orders";
+        } catch (Exception e) {
+            // 예외 발생 시 에러 메시지 표시
+            model.addAttribute("errorMessage", e.getMessage());
+            model.addAttribute("orders", orderService.getAllOrders());
+            return "/view/order/orderList";
+        }
     }
 
     //TODO
     // 주문 취소 처리: 주문 상태를 CANCELED로 변경 (재고 가감은 하지 않음)
     @PostMapping("/cancel")
-    public String cancelOrder(@RequestParam Long orderId) {
-        Order order = orderService.getOrderById(orderId)
-                .orElseThrow(() -> new RuntimeException("주문을 찾을 수 없습니다: " + orderId));
-        order.setStatus("CANCELED");
-        orderService.saveOrder(order);
-        return "redirect:/orders";
+    public String cancelOrder(@RequestParam Long orderId, Model model) {
+        try {
+            Order order = orderService.getOrderById(orderId)
+                    .orElseThrow(() -> new RuntimeException("주문을 찾을 수 없습니다: " + orderId));
+            
+            // 이미 처리된 주문인지 확인
+            if ("CANCELED".equals(order.getStatus())) {
+                throw new RuntimeException("이미 취소된 주문입니다: " + orderId);
+            }
+            
+            if ("ACCEPTED".equals(order.getStatus())) {
+                throw new RuntimeException("이미 수락된 주문은 취소할 수 없습니다: " + orderId);
+            }
+            
+            // 주문 상태 변경
+            order.setStatus("CANCELED");
+            orderService.saveOrder(order);
+            
+            return "redirect:/orders";
+        } catch (Exception e) {
+            // 예외 발생 시 에러 메시지 표시
+            model.addAttribute("errorMessage", e.getMessage());
+            model.addAttribute("orders", orderService.getAllOrders());
+            return "/view/order/orderList";
+        }
     }
 }

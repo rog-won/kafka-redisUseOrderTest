@@ -3,10 +3,25 @@
 <head>
   <meta charset="UTF-8">
   <title>주문 목록</title>
+  <style>
+    .error-message {
+      color: red;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+    .action-buttons form {
+      display: inline-block;
+      margin-right: 5px;
+    }
+  </style>
 </head>
 <body>
 <div th:insert="~{fragment/fragments :: nav}"></div>
 <h1>주문 목록</h1>
+
+<!-- 에러 메시지 표시 -->
+<div th:if="${errorMessage}" class="error-message" th:text="${errorMessage}"></div>
+
 <table border="1">
   <thead>
   <tr>
@@ -16,16 +31,34 @@
     <th>상태</th>
     <th>창고 코드</th>
     <th>등록 시간</th>
+    <th>작업</th>
   </tr>
   </thead>
   <tbody>
   <tr th:each="order : ${orders}">
-    <td th:text="${order.code}">주문 코드</td>
+    <td>
+      <a th:href="@{/orders/{id}(id=${order.id})}" th:text="${order.code}">주문 코드</a>
+    </td>
     <td th:text="${order.product.name}">제품명</td>
     <td th:text="${order.quantity}">수량</td>
     <td th:text="${order.status}">상태</td>
     <td th:text="${order.warehouse.code}">창고 코드</td>
     <td th:text="${#temporals.format(order.createdAt, 'yyyy-MM-dd HH:mm:ss')}">등록 시간</td>
+    <td class="action-buttons">
+      <!-- 생성 상태인 경우에만 수락/취소 버튼 표시 -->
+      <div th:if="${order.status == 'CREATED'}">
+        <form th:action="@{/orders/accept}" method="post">
+          <input type="hidden" name="orderId" th:value="${order.id}" />
+          <button type="submit">수락</button>
+        </form>
+        <form th:action="@{/orders/cancel}" method="post">
+          <input type="hidden" name="orderId" th:value="${order.id}" />
+          <button type="submit">취소</button>
+        </form>
+      </div>
+      <span th:unless="${order.status == 'CREATED'}" 
+            th:text="${order.status == 'ACCEPTED' ? '수락됨' : '취소됨'}"></span>
+    </td>
   </tr>
   </tbody>
 </table>

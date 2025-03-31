@@ -7,7 +7,7 @@
 <body>
 <div th:insert="~{fragment/fragments :: nav}"></div>
 <h1>새 주문 생성</h1>
-<form th:action="@{/orders}" th:object="${orderDto}" method="post">
+<form th:action="@{/orders/new}" th:object="${orderDto}" method="post">
   <label>제품:
     <select th:field="*{productCode}" required>
       <option value="">--제품 선택--</option>

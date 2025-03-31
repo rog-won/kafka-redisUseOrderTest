@@ -33,17 +33,12 @@ public class OrderService {
                 .orElseThrow(() -> new RuntimeException("제품을 찾을 수 없습니다: " + dto.getProductCode()));
         Warehouse warehouse = warehouseRepository.findByCode(dto.getWarehouseCode())
                 .orElseThrow(() -> new RuntimeException("창고를 찾을 수 없습니다: " + dto.getWarehouseCode()));
+        
         // DTO를 엔티티로 변환
         Order order = dto.toEntity(product, warehouse);
-
-        Optional<Order> existingOpt = orderRepository.findByProductAndWarehouse(product, warehouse);
-        if(existingOpt.isPresent()){
-            Order existing = existingOpt.get();
-            existing.setQuantity(existing.getQuantity() + order.getQuantity());
-            return orderRepository.save(existing);
-        } else {
-            return orderRepository.save(order);
-        }
+        
+        // 항상 새로운 주문 생성 (중복 체크 없음)
+        return orderRepository.save(order);
     }
 
     public List<Order> getAllOrders() {
@@ -52,5 +47,10 @@ public class OrderService {
 
     public Optional<Order> getOrderById(Long id) {
         return orderRepository.findById(id);
+    }
+
+    @Transactional
+    public Order saveOrder(Order order) {
+        return orderRepository.save(order);
     }
 }
