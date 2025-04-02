@@ -13,6 +13,11 @@
       display: inline-block;
       margin-right: 5px;
     }
+    .product-image {
+      max-width: 60px;
+      max-height: 60px;
+      object-fit: contain;
+    }
   </style>
 </head>
 <body>
@@ -26,6 +31,7 @@
   <thead>
   <tr>
     <th>주문 코드</th>
+    <th>제품 이미지</th>
     <th>제품명</th>
     <th>수량</th>
     <th>상태</th>
@@ -38,6 +44,10 @@
   <tr th:each="order : ${orders}">
     <td>
       <a th:href="@{/orders/{id}(id=${order.id})}" th:text="${order.code}">주문 코드</a>
+    </td>
+    <td>
+      <img th:if="${order.product.imagePath}" th:src="@{/product/image/{fileName}(fileName=${order.product.imagePath})}" alt="제품 이미지" class="product-image">
+      <span th:unless="${order.product.imagePath}">이미지 없음</span>
     </td>
     <td th:text="${order.product.name}">제품명</td>
     <td th:text="${order.quantity}">수량</td>

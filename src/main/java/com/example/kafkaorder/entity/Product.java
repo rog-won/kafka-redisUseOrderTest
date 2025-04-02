@@ -34,6 +34,8 @@ public class Product {
     @Lob
     private String description;
 
+    private String imagePath;
+
     private LocalDateTime createdAt;
 
 

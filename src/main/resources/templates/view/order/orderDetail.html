@@ -23,6 +23,12 @@
     .order-detail dt {
       font-weight: bold;
     }
+    .product-image {
+      max-width: 200px;
+      max-height: 200px;
+      object-fit: contain;
+      margin: 10px 0;
+    }
   </style>
 </head>
 <body>
@@ -36,6 +42,12 @@
   <dl>
     <dt>주문 코드:</dt>
     <dd th:text="${order.code}">OD123456</dd>
+    
+    <dt>제품 이미지:</dt>
+    <dd>
+      <img th:if="${order.product.imagePath}" th:src="@{/product/image/{fileName}(fileName=${order.product.imagePath})}" alt="제품 이미지" class="product-image">
+      <span th:unless="${order.product.imagePath}">이미지 없음</span>
+    </dd>
     
     <dt>제품:</dt>
     <dd th:text="${order.product.name}">제품명</dd>

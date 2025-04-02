@@ -3,6 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <title>제품 목록</title>
+    <style>
+        .product-image {
+            max-width: 100px;
+            max-height: 100px;
+            object-fit: contain;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 5px;
+        }
+    </style>
 </head>
 <body>
 <div th:insert="~{fragment/fragments :: nav}"></div>
@@ -11,21 +22,32 @@
     <thead>
     <tr>
         <th>ID</th>
+        <th>이미지</th>
         <th>상품 코드</th>
         <th>상품명</th>
         <th>가격</th>
         <th>상세 설명</th>
         <th>등록 시간</th>
+        <th>작업</th>
     </tr>
     </thead>
     <tbody>
     <tr th:each="product : ${productList}">
         <td th:text="${product.id}">ID</td>
+        <td>
+            <img th:if="${product.imagePath}" th:src="@{/product/image/{fileName}(fileName=${product.imagePath})}" alt="상품 이미지" class="product-image">
+            <span th:unless="${product.imagePath}">이미지 없음</span>
+        </td>
         <td th:text="${product.code}">상품 코드</td>
         <td th:text="${product.name}">상품명</td>
         <td th:text="${product.price}">가격</td>
         <td th:text="${product.description}">상세 설명</td>
         <td th:text="${#temporals.format(product.createdAt, 'yyyy-MM-dd HH:mm:ss')}">등록 시간</td>
+        <td class="action-buttons">
+            <form th:action="@{/product/delete/{id}(id=${product.id})}" method="post" onsubmit="return confirm('정말 삭제하시겠습니까?');">
+                <button type="submit">삭제</button>
+            </form>
+        </td>
     </tr>
     </tbody>
 </table>

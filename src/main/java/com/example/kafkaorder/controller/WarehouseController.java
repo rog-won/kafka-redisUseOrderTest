@@ -36,4 +36,11 @@ public class WarehouseController {
         warehouseService.saveWarehouse(warehouse);
         return "redirect:/warehouses";
     }
+    
+    // 창고 삭제 처리
+    @PostMapping("/delete/{id}")
+    public String deleteWarehouse(@PathVariable Long id) {
+        warehouseService.deleteWarehouse(id);
+        return "redirect:/warehouses";
+    }
 }
