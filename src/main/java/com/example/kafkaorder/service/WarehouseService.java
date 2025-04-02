@@ -12,9 +12,11 @@ import java.util.Optional;
 public class WarehouseService {
 
     private final WarehouseRepository warehouseRepository;
+    private final InventoryService inventoryService;
 
-    public WarehouseService(WarehouseRepository warehouseRepository) {
+    public WarehouseService(WarehouseRepository warehouseRepository, InventoryService inventoryService) {
         this.warehouseRepository = warehouseRepository;
+        this.inventoryService = inventoryService;
     }
 
     public List<Warehouse> getAllWarehouses() {
@@ -27,8 +29,14 @@ public class WarehouseService {
     
     // 창고 삭제 기능
     @Transactional
-    public void deleteWarehouse(Long warehouseId) {
-        warehouseRepository.deleteById(warehouseId);
+    public void deleteWarehouse(String code) {
+        Optional<Warehouse> warehouseOptional = warehouseRepository.findByCode(code);
+        if (warehouseOptional.isPresent()) {
+            inventoryService.deleteInventoryByWarehouseCode(code);
+            warehouseRepository.deleteById(warehouseOptional.get().getId());
+        } else {
+            throw new RuntimeException("존재하지 않는 창고 코드입니다: " + code);
+        }
     }
     
     public Optional<Warehouse> getWarehouseById(Long id) {

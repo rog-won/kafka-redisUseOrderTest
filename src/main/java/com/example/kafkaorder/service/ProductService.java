@@ -13,10 +13,12 @@ public class ProductService {
 
     private final ProductRepository productRepository;
     private final FileStorageService fileStorageService;
+    private final InventoryService inventoryService;
 
-    public ProductService(ProductRepository productRepository, FileStorageService fileStorageService) {
+    public ProductService(ProductRepository productRepository, FileStorageService fileStorageService, InventoryService inventoryService) {
         this.productRepository = productRepository;
         this.fileStorageService = fileStorageService;
+        this.inventoryService = inventoryService;
     }
 
     // 제품 저장
@@ -40,9 +42,8 @@ public class ProductService {
     
     // 제품 삭제 (이미지 파일도 함께 삭제)
     @Transactional
-    public void deleteProduct(Long productId) {
-        Optional<Product> productOptional = productRepository.findById(productId);
-        
+    public void deleteProduct(String code) {
+        Optional<Product> productOptional = productRepository.findByCode(code);
         if (productOptional.isPresent()) {
             Product product = productOptional.get();
             
@@ -51,8 +52,13 @@ public class ProductService {
                 fileStorageService.deleteFile(product.getImagePath());
             }
             
+            // 재고 삭제
+            inventoryService.deleteInventoryByProductCode(code);
+            
             // 제품 삭제
-            productRepository.delete(product);
+            productRepository.deleteById(product.getId());
+        } else {
+            throw new RuntimeException("존재하지 않는 제품 코드입니다: " + code);
         }
     }
 }
