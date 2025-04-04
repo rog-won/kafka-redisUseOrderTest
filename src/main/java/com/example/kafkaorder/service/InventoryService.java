@@ -89,4 +89,36 @@ public class InventoryService {
         // 재고 차감
         deductInventory(inventory, order.getQuantity());
     }
+    
+    // 특정 제품 코드에 해당하는 모든 재고 삭제
+    @Transactional
+    public void deleteInventoryByProductCode(String productCode) {
+        Optional<Product> productOptional = productRepository.findByCode(productCode);
+        if (productOptional.isPresent()) {
+            Product product = productOptional.get();
+            // 해당 제품과 관련된 모든 재고 찾기
+            List<Inventory> inventories = inventoryRepository.findAll().stream()
+                .filter(inventory -> inventory.getProduct().getId().equals(product.getId()))
+                .toList();
+            
+            // 모든 재고 삭제
+            inventoryRepository.deleteAll(inventories);
+        }
+    }
+    
+    // 특정 창고 코드에 해당하는 모든 재고 삭제
+    @Transactional
+    public void deleteInventoryByWarehouseCode(String warehouseCode) {
+        Optional<Warehouse> warehouseOptional = warehouseRepository.findByCode(warehouseCode);
+        if (warehouseOptional.isPresent()) {
+            Warehouse warehouse = warehouseOptional.get();
+            // 해당 창고와 관련된 모든 재고 찾기
+            List<Inventory> inventories = inventoryRepository.findAll().stream()
+                .filter(inventory -> inventory.getWarehouse().getId().equals(warehouse.getId()))
+                .toList();
+            
+            // 모든 재고 삭제
+            inventoryRepository.deleteAll(inventories);
+        }
+    }
 }

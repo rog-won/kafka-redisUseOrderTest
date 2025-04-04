@@ -44,7 +44,7 @@
         <td th:text="${product.description}">상세 설명</td>
         <td th:text="${#temporals.format(product.createdAt, 'yyyy-MM-dd HH:mm:ss')}">등록 시간</td>
         <td class="action-buttons">
-            <form th:action="@{/product/delete/{id}(id=${product.id})}" method="post" onsubmit="return confirm('정말 삭제하시겠습니까?');">
+            <form th:action="@{/product/delete/{code}(code=${product.code})}" method="post" onsubmit="return confirm('정말 삭제하시겠습니까?');">
                 <button type="submit">삭제</button>
             </form>
         </td>

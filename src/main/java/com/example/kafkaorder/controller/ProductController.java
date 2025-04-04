@@ -62,10 +62,10 @@ public class ProductController {
         return "redirect:/product/list";
     }
     
-    // 제품 삭제 처리
-    @PostMapping("/delete/{id}")
-    public String deleteProduct(@PathVariable Long id) {
-        productService.deleteProduct(id);
+    // 제품 삭제 처리 - ID 대신 코드 사용
+    @PostMapping("/delete/{code}")
+    public String deleteProduct(@PathVariable String code) {
+        productService.deleteProduct(code);
         return "redirect:/product/list";
     }
     
