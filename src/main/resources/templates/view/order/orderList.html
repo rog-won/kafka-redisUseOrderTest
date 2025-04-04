@@ -46,13 +46,25 @@
       <a th:href="@{/orders/{id}(id=${order.id})}" th:text="${order.code}">주문 코드</a>
     </td>
     <td>
-      <img th:if="${order.product.imagePath}" th:src="@{/product/image/{fileName}(fileName=${order.product.imagePath})}" alt="제품 이미지" class="product-image">
-      <span th:unless="${order.product.imagePath}">이미지 없음</span>
+      <!-- 제품이 있고 이미지 경로가 있는 경우에만 이미지 표시 -->
+      <img th:if="${order.product != null && order.product.imagePath != null}" 
+           th:src="@{/product/image/{fileName}(fileName=${order.product.imagePath})}" 
+           alt="제품 이미지" class="product-image">
+      <span th:if="${order.product == null}">제품 정보 없음 (제품 ID: [[${order.productCode}]])</span>
+      <span th:if="${order.product != null && order.product.imagePath == null}">이미지 없음</span>
     </td>
-    <td th:text="${order.product.name}">제품명</td>
+    <td>
+      <!-- 제품이 있으면 제품 이름, 없으면 백업된 제품 이름 표시 -->
+      <span th:if="${order.product != null}" th:text="${order.product.name}">제품명</span>
+      <span th:if="${order.product == null}" th:text="${order.productName}">제품명 (백업)</span>
+    </td>
     <td th:text="${order.quantity}">수량</td>
     <td th:text="${order.status}">상태</td>
-    <td th:text="${order.warehouse.code}">창고 코드</td>
+    <td>
+      <!-- 창고가 있으면 창고 코드, 없으면 백업된 창고 코드 표시 -->
+      <span th:if="${order.warehouse != null}" th:text="${order.warehouse.code}">창고 코드</span>
+      <span th:if="${order.warehouse == null}" th:text="${order.warehouseCode}">창고 코드 (백업)</span>
+    </td>
     <td th:text="${#temporals.format(order.createdAt, 'yyyy-MM-dd HH:mm:ss')}">등록 시간</td>
     <td class="action-buttons">
       <!-- 생성 상태인 경우에만 수락/취소 버튼 표시 -->

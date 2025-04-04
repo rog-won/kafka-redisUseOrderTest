@@ -72,6 +72,21 @@ public class InventoryService {
 
     @Transactional
     public void processOrderAcceptance(Order order, String warehouseCode) {
+        // 제품이나 창고가 삭제되었는지 확인
+        if (order.getProduct() == null) {
+            throw new RuntimeException(String.format(
+                "제품이 삭제되어 주문을 처리할 수 없습니다: 제품 코드 '%s'", 
+                order.getProductCode()
+            ));
+        }
+        
+        if (order.getWarehouse() == null) {
+            throw new RuntimeException(String.format(
+                "창고가 삭제되어 주문을 처리할 수 없습니다: 창고 코드 '%s'", 
+                order.getWarehouseCode()
+            ));
+        }
+        
         // 창고와 제품으로 재고 조회
         List<Inventory> inventories = inventoryRepository.findByProductAndWarehouse(order.getProduct(), order.getWarehouse());
         

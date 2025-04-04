@@ -14,7 +14,8 @@ public class WarehouseService {
     private final WarehouseRepository warehouseRepository;
     private final InventoryService inventoryService;
 
-    public WarehouseService(WarehouseRepository warehouseRepository, InventoryService inventoryService) {
+    public WarehouseService(WarehouseRepository warehouseRepository, 
+                           InventoryService inventoryService) {
         this.warehouseRepository = warehouseRepository;
         this.inventoryService = inventoryService;
     }
@@ -32,8 +33,13 @@ public class WarehouseService {
     public void deleteWarehouse(String code) {
         Optional<Warehouse> warehouseOptional = warehouseRepository.findByCode(code);
         if (warehouseOptional.isPresent()) {
+            Warehouse warehouse = warehouseOptional.get();
+            
+            // 1. 관련 재고 삭제
             inventoryService.deleteInventoryByWarehouseCode(code);
-            warehouseRepository.deleteById(warehouseOptional.get().getId());
+            
+            // 2. 창고 자체 삭제
+            warehouseRepository.delete(warehouse);
         } else {
             throw new RuntimeException("존재하지 않는 창고 코드입니다: " + code);
         }

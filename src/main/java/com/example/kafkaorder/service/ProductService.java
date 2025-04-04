@@ -47,16 +47,16 @@ public class ProductService {
         if (productOptional.isPresent()) {
             Product product = productOptional.get();
             
-            // 제품에 이미지가 있으면 이미지 파일도 삭제
+            // 1. 제품에 이미지가 있으면 이미지 파일도 삭제
             if (product.getImagePath() != null && !product.getImagePath().isEmpty()) {
                 fileStorageService.deleteFile(product.getImagePath());
             }
             
-            // 재고 삭제
+            // 2. 재고 삭제
             inventoryService.deleteInventoryByProductCode(code);
             
-            // 제품 삭제
-            productRepository.deleteById(product.getId());
+            // 3. 제품 삭제
+            productRepository.delete(product);
         } else {
             throw new RuntimeException("존재하지 않는 제품 코드입니다: " + code);
         }

@@ -45,15 +45,27 @@
     
     <dt>제품 이미지:</dt>
     <dd>
-      <img th:if="${order.product.imagePath}" th:src="@{/product/image/{fileName}(fileName=${order.product.imagePath})}" alt="제품 이미지" class="product-image">
-      <span th:unless="${order.product.imagePath}">이미지 없음</span>
+      <!-- 제품이 있고 이미지 경로가 있는 경우에만 이미지 표시 -->
+      <img th:if="${order.product != null && order.product.imagePath != null}" 
+           th:src="@{/product/image/{fileName}(fileName=${order.product.imagePath})}" 
+           alt="제품 이미지" class="product-image">
+      <span th:if="${order.product == null}">제품 정보 없음 (삭제된 제품)</span>
+      <span th:if="${order.product != null && order.product.imagePath == null}">이미지 없음</span>
     </dd>
     
     <dt>제품:</dt>
-    <dd th:text="${order.product.name}">제품명</dd>
+    <dd>
+      <!-- 제품이 있으면 제품 이름, 없으면 백업된 제품 이름 표시 -->
+      <span th:if="${order.product != null}" th:text="${order.product.name}">제품명</span>
+      <span th:if="${order.product == null}" th:text="${order.productName}">제품명 (백업)</span>
+    </dd>
     
     <dt>제품 코드:</dt>
-    <dd th:text="${order.product.code}">제품 코드</dd>
+    <dd>
+      <!-- 제품이 있으면 제품 코드, 없으면 백업된 제품 코드 표시 -->
+      <span th:if="${order.product != null}" th:text="${order.product.code}">제품 코드</span>
+      <span th:if="${order.product == null}" th:text="${order.productCode}">제품 코드 (백업)</span>
+    </dd>
     
     <dt>수량:</dt>
     <dd th:text="${order.quantity}">10</dd>
@@ -62,10 +74,18 @@
     <dd th:text="${order.status}">CREATED</dd>
     
     <dt>창고:</dt>
-    <dd th:text="${order.warehouse.name}">창고명</dd>
+    <dd>
+      <!-- 창고가 있으면 창고 이름, 없으면 백업된 창고 이름 표시 -->
+      <span th:if="${order.warehouse != null}" th:text="${order.warehouse.name}">창고명</span>
+      <span th:if="${order.warehouse == null}" th:text="${order.warehouseName}">창고명 (백업)</span>
+    </dd>
     
     <dt>창고 코드:</dt>
-    <dd th:text="${order.warehouse.code}">창고 코드</dd>
+    <dd>
+      <!-- 창고가 있으면 창고 코드, 없으면 백업된 창고 코드 표시 -->
+      <span th:if="${order.warehouse != null}" th:text="${order.warehouse.code}">창고 코드</span>
+      <span th:if="${order.warehouse == null}" th:text="${order.warehouseCode}">창고 코드 (백업)</span>
+    </dd>
     
     <dt>등록 시간:</dt>
     <dd th:text="${#temporals.format(order.createdAt, 'yyyy-MM-dd HH:mm:ss')}">2023-01-01 12:00:00</dd>
