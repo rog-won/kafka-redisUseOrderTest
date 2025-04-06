@@ -77,14 +77,21 @@ public class ProductController {
             Resource resource = new UrlResource(filePath.toUri());
             
             if(resource.exists()) {
+                // 파일명을 URL 인코딩하여 ASCII 범위로 제한
+                String originalFilename = resource.getFilename();
+                String encodedFilename = java.net.URLEncoder.encode(originalFilename, "UTF-8")
+                    .replaceAll("\\+", "%20");
+                
                 return ResponseEntity.ok()
-                        .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + resource.getFilename() + "\"")
+                        .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + encodedFilename + "\"")
                         .body(resource);
             } else {
                 return ResponseEntity.notFound().build();
             }
         } catch (MalformedURLException e) {
             return ResponseEntity.badRequest().build();
+        } catch (java.io.UnsupportedEncodingException e) {
+            return ResponseEntity.status(500).build();
         }
     }
 }
