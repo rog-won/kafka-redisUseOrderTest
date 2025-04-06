@@ -36,4 +36,12 @@ out/
 ### VS Code ###
 .vscode/
 
+# img files
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.svg
+*.ico
+
 application-prod.properties
