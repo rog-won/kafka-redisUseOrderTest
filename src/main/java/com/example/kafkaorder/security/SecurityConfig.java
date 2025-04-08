@@ -40,7 +40,12 @@ public class SecurityConfig {
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/auth/**", "/", "/index", "/view/auth/**", "/css/**", "/js/**", "/product/image/**").permitAll()
-                .requestMatchers("/product/**", "/warehouses/**", "/inventory/**", "/orders/**").permitAll()
+                .requestMatchers(
+                        "/product/**",
+                        "/warehouses/**",
+                        "/inventory/**",
+                        "/orders/**")
+                    .permitAll()
                 .anyRequest().authenticated()
             );
 

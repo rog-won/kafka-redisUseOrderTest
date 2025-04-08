@@ -31,11 +31,12 @@ public class UserService {
         }
 
         // 사용자 엔티티 생성
-        User user = new User();
-        user.setUsername(userDto.getUsername());
-        user.setPassword(passwordEncoder.encode(userDto.getPassword())); // 비밀번호 암호화
-        user.setName(userDto.getName());
-        user.setEmail(userDto.getEmail());
+        User user = User.builder()
+                .username(userDto.getUsername())
+                .password(passwordEncoder.encode(userDto.getPassword())) // 비밀번호는 나중에 암호화
+                .name(userDto.getName())
+                .email(userDto.getEmail())
+                .build();
 
         // 저장 및 반환
         return userRepository.save(user);
