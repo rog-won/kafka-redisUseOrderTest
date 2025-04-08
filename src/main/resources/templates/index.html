@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>주문 관리 시스템</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .user-info {
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+        }
+        .main-menu {
+            margin-top: 30px;
+        }
+        .main-menu .card {
+            height: 100%;
+            transition: transform 0.3s;
+        }
+        .main-menu .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <div class="user-info" id="userInfo" style="display: none;">
+            <div class="d-flex justify-content-between align-items-center">
+                <h4 id="welcomeMessage"></h4>
+                <button id="logoutBtn" class="btn btn-outline-danger">로그아웃</button>
+            </div>
+        </div>
+
+        <h1 class="mb-4 text-center">주문 관리 시스템</h1>
+        
+        <div class="alert alert-warning" id="notLoggedInMessage" style="display: none;">
+            로그인이 필요합니다. <a href="/view/auth/login">로그인 페이지로 이동</a>
+        </div>
+        
+        <div class="main-menu">
+            <div class="row row-cols-1 row-cols-md-3 g-4">
+                <div class="col">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">제품 관리</h5>
+                            <p class="card-text">제품 목록을 조회하고 새로운 제품을 등록합니다.</p>
+                            <a href="/product/list" class="btn btn-primary">제품 목록</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">창고 관리</h5>
+                            <p class="card-text">창고 목록을 조회하고 새로운 창고를 등록합니다.</p>
+                            <a href="/warehouses" class="btn btn-primary">창고 목록</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">재고 관리</h5>
+                            <p class="card-text">창고별 재고 현황을 조회하고 재고를 추가합니다.</p>
+                            <a href="/inventory" class="btn btn-primary">재고 목록</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">주문 관리</h5>
+                            <p class="card-text">주문 내역을 조회하고 새로운 주문을 등록합니다.</p>
+                            <a href="/orders" class="btn btn-primary">주문 목록</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 로컬 스토리지에서 사용자 정보 확인
+            const token = localStorage.getItem('token');
+            const username = localStorage.getItem('username');
+            const name = localStorage.getItem('name');
+            
+            if (token && username) {
+                // 로그인 된 상태
+                document.getElementById('userInfo').style.display = 'block';
+                document.getElementById('welcomeMessage').textContent = `${name || username}님 환영합니다!`;
+                document.getElementById('notLoggedInMessage').style.display = 'none';
+            } else {
+                // 로그인되지 않은 상태
+                document.getElementById('userInfo').style.display = 'none';
+                document.getElementById('notLoggedInMessage').style.display = 'block';
+            }
+            
+            // 로그아웃 버튼 이벤트
+            document.getElementById('logoutBtn').addEventListener('click', function() {
+                localStorage.removeItem('token');
+                localStorage.removeItem('username');
+                localStorage.removeItem('name');
+                window.location.href = '/view/auth/login';
+            });
+        });
+    </script>
+</body>
+</html> 
