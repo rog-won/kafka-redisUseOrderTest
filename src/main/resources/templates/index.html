@@ -97,8 +97,7 @@
                 document.getElementById('notLoggedInMessage').style.display = 'none';
             } else {
                 // 로그인되지 않은 상태
-                document.getElementById('userInfo').style.display = 'none';
-                document.getElementById('notLoggedInMessage').style.display = 'block';
+                window.location.href = '/view/auth/login'; // 로그인 안 되어 있으면 로그인 페이지로 리다이렉트
             }
             
             // 로그아웃 버튼 이벤트
