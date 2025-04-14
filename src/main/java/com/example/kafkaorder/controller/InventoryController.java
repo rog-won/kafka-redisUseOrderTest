@@ -52,4 +52,16 @@ public class InventoryController {
         inventoryService.addOrUpdateInventoryFromDto(inventoryDto);
         return "redirect:/inventory";
     }
+
+    @GetMapping("/{id}")
+    public String viewInventory(@PathVariable Long id, Model model) {
+        try {
+            Inventory inventory = inventoryService.getInventoryById(id);
+            model.addAttribute("inventory", inventory);
+            return "view/inventory/inventoryDetail";
+        } catch (Exception e) {
+            model.addAttribute("error", "해당 재고를 찾을 수 없습니다: " + e.getMessage());
+            return "redirect:/inventory";
+        }
+    }
 }

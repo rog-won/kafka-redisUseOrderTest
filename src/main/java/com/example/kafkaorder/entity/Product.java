@@ -38,7 +38,6 @@ public class Product {
 
     private LocalDateTime createdAt;
 
-
     @PrePersist
     public void prePersist() {
         // 상품 코드 생성 (code가 비어있으면 생성)

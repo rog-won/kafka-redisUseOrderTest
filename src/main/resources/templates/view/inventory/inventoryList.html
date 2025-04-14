@@ -2,34 +2,124 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>재고 목록</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+  <style>
+    .table-container {
+      background-color: #fff;
+      border-radius: 10px;
+      padding: 1rem;
+      box-shadow: 0 0 20px rgba(0,0,0,0.05);
+      margin-bottom: 2rem;
+    }
+    .page-title {
+      margin-bottom: 1.5rem;
+      color: #333;
+      border-left: 5px solid #0d6efd;
+      padding-left: 15px;
+    }
+    .btn-action {
+      padding: 0.5rem 1.5rem;
+      border-radius: 50px;
+      font-weight: 500;
+      transition: all 0.3s;
+    }
+    .btn-action:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
+    .table-hover tbody tr:hover {
+      background-color: rgba(13, 110, 253, 0.05);
+    }
+    .code-link {
+      color: #0d6efd;
+      text-decoration: none;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+    .code-link:hover {
+      color: #0a58ca;
+      text-decoration: underline;
+    }
+  </style>
 </head>
-<body>
-<div th:insert="~{fragment/fragments :: nav}"></div>
-<h1>재고 목록</h1>
-<table border="1">
-  <thead>
-  <tr>
-    <th>ID</th>
-    <th>제품 코드</th>
-    <th>제품명</th>
-    <th>창고 코드</th>
-    <th>창고명</th>
-    <th>재고 수량</th>
-  </tr>
-  </thead>
-  <tbody>
-  <tr th:each="inv : ${inventories}">
-    <td th:text="${inv.id}">ID</td>
-    <td th:text="${inv.product.code}">제품 코드</td>
-    <td th:text="${inv.product.name}">제품명</td>
-    <td th:text="${inv.warehouse.code}">창고 코드</td>
-    <td th:text="${inv.warehouse.name}">창고명</td>
-    <td th:text="${inv.quantity}">수량</td>
-  </tr>
-  </tbody>
-</table>
-<br>
-<a th:href="@{/inventory/new}">재고 입고 등록</a>
+<body class="bg-light">
+<div class="container py-5">
+  <!-- 네비게이션 바 -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-primary rounded-3 mb-4">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="#">재고 관리 시스템</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav me-auto">
+          <li class="nav-item">
+            <a class="nav-link" th:href="@{/}">홈</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" th:href="@{/product/list}">제품</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" th:href="@{/warehouses}">창고</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link active" th:href="@{/inventory}">재고</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" th:href="@{/orders}">주문</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- 페이지 제목 및 재고 추가 버튼 -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="page-title mb-0">재고 목록</h2>
+    <a th:href="@{/inventory/new}" class="btn btn-primary btn-action">
+      <i class="bi bi-plus-circle me-1"></i> 새 재고 등록
+    </a>
+  </div>
+  
+  <!-- 알림 메시지 -->
+  <div th:if="${message}" class="alert alert-success alert-dismissible fade show" role="alert">
+    <i class="bi bi-check-circle me-2"></i> <span th:text="${message}"></span>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+  </div>
+  
+  <!-- 오류 메시지 -->
+  <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+    <i class="bi bi-exclamation-triangle me-2"></i> <span th:text="${error}"></span>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+  </div>
+  
+  <!-- 재고 테이블 -->
+  <div class="table-container">
+    <table class="table table-hover">
+      <thead class="table-light">
+        <tr>
+          <th>제품명</th>
+          <th>창고명</th>
+          <th>수량</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr th:each="inventory : ${inventories}">
+          <td><a th:href="@{/inventory/{id}(id=${inventory.id})}" th:text="${inventory.product.name}"></a></td>
+          <td th:text="${inventory.warehouse?.name}"></td>
+          <td th:text="${inventory.quantity}"></td>
+        </tr>
+        <tr th:if="${inventories.isEmpty()}">
+          <td colspan="3" class="text-center py-4 text-muted">등록된 재고가 없습니다.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

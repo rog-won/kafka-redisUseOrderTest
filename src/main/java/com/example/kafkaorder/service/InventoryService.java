@@ -136,4 +136,9 @@ public class InventoryService {
             inventoryRepository.deleteAll(inventories);
         }
     }
+
+    public Inventory getInventoryById(Long id) {
+        return inventoryRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("재고를 찾을 수 없습니다. ID: " + id));
+    }
 }
