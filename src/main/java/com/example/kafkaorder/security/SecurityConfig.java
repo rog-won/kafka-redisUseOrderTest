@@ -39,7 +39,11 @@ public class SecurityConfig {
             .csrf(AbstractHttpConfigurer::disable)
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/**", "/", "/index", "/view/auth/**", "/css/**", "/js/**", "/product/image/**").permitAll()
+                // 인증 API 및 로그인/회원가입 페이지 허용
+                .requestMatchers("/api/auth/**", "/", "/index", "/view/auth/**").permitAll()
+                // 정적 리소스 접근 허용
+                .requestMatchers("/css/**", "/js/**", "/images/**", "/product/image/**").permitAll()
+                // 현재는 모든 기능 페이지 접근 허용 (추후 인증 필요로 변경 가능)
                 .requestMatchers(
                         "/product/**",
                         "/warehouses/**",
