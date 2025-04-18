@@ -20,13 +20,15 @@
       border-left: 5px solid #0d6efd;
       padding-left: 15px;
     }
-    .btn-action {
+    .btn-action, .btn-add {
       padding: 0.5rem 1.5rem;
       border-radius: 50px;
       font-weight: 500;
       transition: all 0.3s;
+      margin-bottom: 2rem;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     }
-    .btn-action:hover {
+    .btn-action:hover, .btn-add:hover {
       transform: translateY(-2px);
       box-shadow: 0 4px 8px rgba(0,0,0,0.15);
     }
@@ -59,17 +61,17 @@
   <!-- 네비게이션 바 -->
   <th:block th:replace="fragment/fragments :: navbar('inventory')"></th:block>
 
-  <!-- 페이지 제목 및 재고 추가 버튼 -->
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="page-title mb-0">재고 목록</h2>
-    <div>
-      <a th:href="@{/inventory/history}" class="btn btn-outline-primary btn-action me-2">
-        <i class="bi bi-clock-history me-1"></i> 재고 히스토리
-      </a>
-      <a th:href="@{/inventory/new}" class="btn btn-primary btn-action">
-        <i class="bi bi-plus-circle me-1"></i> 새 재고 등록
-      </a>
-    </div>
+  <!-- 페이지 제목 -->
+  <h2 class="page-title">재고 목록</h2>
+
+  <!-- 등록 버튼 -->
+  <div class="d-flex mb-4">
+    <a th:href="@{/inventory/new}" class="btn btn-primary btn-add">
+      <i class="bi bi-plus-circle me-1"></i> 새 재고 등록
+    </a>
+    <a th:href="@{/inventory/history}" class="btn btn-outline-primary btn-action me-2">
+      <i class="bi bi-clock-history me-1"></i> 재고 히스토리
+    </a>
   </div>
   
   <!-- 알림 메시지 -->
@@ -89,8 +91,8 @@
     <table class="table table-hover">
       <thead class="table-light">
         <tr>
-          <th>제품명</th>
           <th>제품코드</th>
+          <th>제품명</th>
           <th>창고명</th>
           <th>수량</th>
           <th>등록일</th>
@@ -98,8 +100,8 @@
       </thead>
       <tbody>
         <tr th:each="inventory : ${inventories}">
-          <td><a th:href="@{/inventory/{id}(id=${inventory.id})}" th:text="${inventory.product.name}"></a></td>
-          <td><span class="code-badge" th:text="${inventory.product.code}"></span></td>
+          <td><span class="code-badge"><a th:href="@{/inventory/{id}(id=${inventory.id})}" th:text="${inventory.product.code}"></a></span></td>
+          <td th:text="${inventory.product.name}"></td>
           <td th:text="${inventory.warehouse?.name}"></td>
           <td th:text="${inventory.quantity}"></td>
           <td>

@@ -58,6 +58,15 @@
             color: #6c757d;
             font-size: 0.85rem;
         }
+        .code-badge {
+            font-size: 0.8rem;
+            background-color: #f8f9fa;
+            color: #6c757d;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            border: 1px solid #dee2e6;
+            font-family: monospace;
+        }
     </style>
 </head>
 <body class="bg-light">
@@ -97,7 +106,7 @@
                         <i class="bi bi-card-image"></i>
                     </div>
                 </td>
-                <td th:text="${product.code}">상품 코드</td>
+                <td> <span class="code-badge" th:text="${product.code}">상품 코드</span></td>
                 <td th:text="${product.name}">상품명</td>
                 <td th:text="${#numbers.formatDecimal(product.price, 0, 'COMMA', 0, 'POINT')} + '원'">가격</td>
                 <td>

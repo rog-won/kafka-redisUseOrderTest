@@ -54,8 +54,20 @@ public class Order {
     @Column(name = "warehouse_name")
     private String warehouseName;
 
+    // 주문 생성자 이름
+    @Column(name = "created_by")
+    private String createdBy;
+
     // 주문 등록 시간
     private LocalDateTime createdAt;
+
+    // 주문 상태 변경 시간
+    @Column(name = "status_changed_at")
+    private LocalDateTime statusChangedAt;
+
+    // 주문 상태를 변경한 사용자 이름
+    @Column(name = "status_changed_by")
+    private String statusChangedBy;
 
     @PrePersist
     public void prePersist() {

@@ -10,6 +10,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
+
 @Controller
 @RequestMapping("/orders")
 public class OrderController {
@@ -69,7 +71,7 @@ public class OrderController {
     //TODO
     // 주문 수락 처리: 주문 상태를 ACCEPTED로 변경하고 재고에서 주문 수량을 차감
     @PostMapping("/accept")
-    public String acceptOrder(@RequestParam Long orderId, Model model) {
+    public String acceptOrder(@RequestParam Long orderId, @RequestParam(required = false) String username, Model model) {
         try {
             Order order = orderService.getOrderById(orderId)
                     .orElseThrow(() -> new RuntimeException("주문을 찾을 수 없습니다: " + orderId));
@@ -86,8 +88,10 @@ public class OrderController {
             // 재고 확인 및 차감 처리
             inventoryService.processOrderAcceptance(order, order.getWarehouse().getCode());
             
-            // 주문 상태 변경
+            // 주문 상태 변경 및 처리 정보 업데이트
             order.setStatus("ACCEPTED");
+            order.setStatusChangedAt(LocalDateTime.now());
+            order.setStatusChangedBy(username != null ? username : "관리자");
             orderService.saveOrder(order);
             
             return "redirect:/orders";
@@ -102,7 +106,7 @@ public class OrderController {
     //TODO
     // 주문 취소 처리: 주문 상태를 CANCELED로 변경 (재고 가감은 하지 않음)
     @PostMapping("/cancel")
-    public String cancelOrder(@RequestParam Long orderId, Model model) {
+    public String cancelOrder(@RequestParam Long orderId, @RequestParam(required = false) String username, Model model) {
         try {
             Order order = orderService.getOrderById(orderId)
                     .orElseThrow(() -> new RuntimeException("주문을 찾을 수 없습니다: " + orderId));
@@ -116,8 +120,10 @@ public class OrderController {
                 throw new RuntimeException("이미 수락된 주문은 취소할 수 없습니다: " + orderId);
             }
             
-            // 주문 상태 변경
+            // 주문 상태 변경 및 처리 정보 업데이트
             order.setStatus("CANCELED");
+            order.setStatusChangedAt(LocalDateTime.now());
+            order.setStatusChangedBy(username != null ? username : "관리자");
             orderService.saveOrder(order);
             
             return "redirect:/orders";

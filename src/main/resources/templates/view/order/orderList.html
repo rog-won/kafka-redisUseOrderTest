@@ -44,15 +44,26 @@
     .table thead {
       background-color: #f8f9fa;
     }
-    .btn-new {
-      padding: 0.6rem 2rem;
+    .btn-add {
+      padding: 0.5rem 1.5rem;
       border-radius: 50px;
       font-weight: 500;
       transition: all 0.3s;
+      margin-bottom: 2rem;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     }
-    .btn-new:hover {
+    .btn-add:hover {
       transform: translateY(-2px);
       box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
+    .status-info {
+      display: flex;
+      flex-direction: column;
+    }
+    .status-by {
+      font-size: 0.75rem;
+      color: #6c757d;
+      margin-top: 0.25rem;
     }
   </style>
 </head>
@@ -63,6 +74,13 @@
 
   <!-- 페이지 제목 -->
   <h2 class="page-title">주문 목록</h2>
+  
+  <!-- 주문 생성 버튼 -->
+  <div class="mb-4">
+    <a th:href="@{/orders/new}" class="btn btn-primary btn-add">
+      <i class="bi bi-plus-circle me-1"></i> 새 주문 생성
+    </a>
+  </div>
 
   <!-- 에러 메시지 표시 -->
   <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
@@ -79,6 +97,7 @@
           <th>수량</th>
           <th>상태</th>
           <th>창고 코드</th>
+          <th>등록자</th>
           <th>등록 시간</th>
           <th>작업</th>
         </tr>
@@ -103,28 +122,40 @@
           </td>
           <td th:text="${order.quantity}">수량</td>
           <td>
-            <span th:if="${order.status == 'CREATED'}" class="badge bg-warning text-dark">대기중</span>
-            <span th:if="${order.status == 'ACCEPTED'}" class="badge bg-success">수락됨</span>
-            <span th:if="${order.status == 'CANCELED'}" class="badge bg-danger">취소됨</span>
+            <div class="status-info">
+              <span th:if="${order.status == 'CREATED'}" class="badge bg-warning text-dark">대기중</span>
+              <span th:if="${order.status == 'ACCEPTED'}" class="badge bg-success">수락됨</span>
+              <span th:if="${order.status == 'CANCELED'}" class="badge bg-danger">취소됨</span>
+              
+              <!-- 상태 변경 정보 표시 -->
+              <span th:if="${order.statusChangedBy != null}" class="status-by">
+                <span th:text="${order.statusChangedBy}"></span>
+                <span th:if="${order.statusChangedAt != null}" 
+                      th:text="${'(' + #temporals.format(order.statusChangedAt, 'MM-dd HH:mm') + ')'}"></span>
+              </span>
+            </div>
           </td>
           <td>
             <!-- 창고가 있으면 창고 코드, 없으면 백업된 창고 코드 표시 -->
             <span th:if="${order.warehouse != null}" th:text="${order.warehouse.code}">창고 코드</span>
             <span th:if="${order.warehouse == null}" th:text="${order.warehouseCode}" class="fst-italic">창고 코드 (백업)</span>
           </td>
+          <td th:text="${order.createdBy ?: '-'}">등록자</td>
           <td th:text="${#temporals.format(order.createdAt, 'yyyy-MM-dd HH:mm')}">등록 시간</td>
           <td>
             <!-- 생성 상태인 경우에만 수락/취소 버튼 표시 -->
             <div th:if="${order.status == 'CREATED'}" class="action-buttons">
               <form th:action="@{/orders/accept}" method="post">
                 <input type="hidden" name="orderId" th:value="${order.id}" />
-                <button type="submit" class="btn btn-success btn-sm">
+                <input type="hidden" name="username" id="acceptUsername" />
+                <button type="submit" class="btn btn-success btn-sm action-btn">
                   <i class="bi bi-check-circle-fill"></i> 수락
                 </button>
               </form>
               <form th:action="@{/orders/cancel}" method="post">
                 <input type="hidden" name="orderId" th:value="${order.id}" />
-                <button type="submit" class="btn btn-danger btn-sm">
+                <input type="hidden" name="username" id="cancelUsername" />
+                <button type="submit" class="btn btn-danger btn-sm action-btn">
                   <i class="bi bi-x-circle-fill"></i> 취소
                 </button>
               </form>
@@ -138,16 +169,43 @@
       </table>
     </div>
   </div>
-  
-  <!-- 주문 생성 버튼 -->
-  <div class="d-flex justify-content-end">
-    <a th:href="@{/orders/new}" class="btn btn-primary btn-new">
-      <i class="bi bi-plus-circle me-1"></i> 새 주문 생성
-    </a>
-  </div>
 </div>
 
 <!-- 공통 스크립트 -->
 <th:block th:replace="fragment/fragments :: commonScripts"></th:block>
+
+<!-- 사용자 정보 설정 스크립트 -->
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // 로컬스토리지에서 사용자 이름 가져오기
+    const userName = localStorage.getItem('name') || localStorage.getItem('userName') || localStorage.getItem('username');
+    
+    // 모든 폼의 hidden 필드에 사용자 이름 설정
+    const usernameFields = document.querySelectorAll('input[name="username"]');
+    usernameFields.forEach(field => {
+      if (userName) {
+        field.value = userName;
+      } else {
+        // 로컬스토리지에 이름이 없는 경우
+        const token = localStorage.getItem('token');
+        if (token) {
+          try {
+            // JWT 토큰에서 정보 추출 시도
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            if (payload.sub) {
+              field.value = payload.sub;
+            } else {
+              field.value = '관리자';
+            }
+          } catch (e) {
+            field.value = '관리자';
+          }
+        } else {
+          field.value = '관리자';
+        }
+      }
+    });
+  });
+</script>
 </body>
 </html>

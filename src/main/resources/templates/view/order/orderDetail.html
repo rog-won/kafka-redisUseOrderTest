@@ -55,6 +55,26 @@
       border-radius: 50px;
       font-weight: 500;
     }
+    .status-info {
+      display: flex;
+      flex-direction: column;
+    }
+    .status-by {
+      font-size: 0.85rem;
+      color: #6c757d;
+      margin-top: 0.5rem;
+    }
+    .user-info {
+      background-color: #f8f9fa;
+      border-radius: 8px;
+      padding: 1rem;
+      margin-top: 1rem;
+      border-left: 4px solid #6c757d;
+    }
+    .user-info i {
+      color: #6c757d;
+      margin-right: 0.5rem;
+    }
   </style>
 </head>
 <body class="bg-light">
@@ -106,9 +126,19 @@
         <div class="row mb-2">
           <div class="col-md-4 label">상태:</div>
           <div class="col-md-8">
-            <span th:if="${order.status == 'CREATED'}" class="badge bg-warning text-dark status-badge">대기중</span>
-            <span th:if="${order.status == 'ACCEPTED'}" class="badge bg-success status-badge">수락됨</span>
-            <span th:if="${order.status == 'CANCELED'}" class="badge bg-danger status-badge">취소됨</span>
+            <div class="status-info">
+              <span th:if="${order.status == 'CREATED'}" class="badge bg-warning text-dark status-badge">대기중</span>
+              <span th:if="${order.status == 'ACCEPTED'}" class="badge bg-success status-badge">수락됨</span>
+              <span th:if="${order.status == 'CANCELED'}" class="badge bg-danger status-badge">취소됨</span>
+              
+              <!-- 상태 변경 정보 표시 -->
+              <span th:if="${order.statusChangedBy != null}" class="status-by">
+                <i class="bi bi-person-check"></i>
+                <span th:text="${order.statusChangedBy + '님이 처리함'}"></span>
+                <span th:if="${order.statusChangedAt != null}" 
+                     th:text="${' (' + #temporals.format(order.statusChangedAt, 'yyyy-MM-dd HH:mm') + ')'}"></span>
+              </span>
+            </div>
           </div>
         </div>
         <div class="row mb-2">
@@ -118,6 +148,10 @@
         <div class="row mb-2">
           <div class="col-md-4 label">등록 시간:</div>
           <div class="col-md-8" th:text="${#temporals.format(order.createdAt, 'yyyy-MM-dd HH:mm')}">2023-01-01 12:00</div>
+        </div>
+        <div class="row mb-2" th:if="${order.createdBy != null}">
+          <div class="col-md-4 label">주문자:</div>
+          <div class="col-md-8" th:text="${order.createdBy}">주문자명</div>
         </div>
       </div>
       <div class="col-md-6">
@@ -173,16 +207,22 @@
       <div class="action-buttons">
         <form th:action="@{/orders/accept}" method="post">
           <input type="hidden" name="orderId" th:value="${order.id}" />
+          <input type="hidden" name="username" id="acceptUsername" />
           <button type="submit" class="btn btn-success btn-action">
             <i class="bi bi-check-circle-fill me-1"></i> 주문 수락
           </button>
         </form>
         <form th:action="@{/orders/cancel}" method="post">
           <input type="hidden" name="orderId" th:value="${order.id}" />
+          <input type="hidden" name="username" id="cancelUsername" />
           <button type="submit" class="btn btn-danger btn-action">
             <i class="bi bi-x-circle-fill me-1"></i> 주문 취소
           </button>
         </form>
+      </div>
+      <div class="user-info">
+        <i class="bi bi-info-circle"></i>
+        <span>현재 로그인한 사용자 계정으로 주문을 처리합니다.</span>
       </div>
     </div>
   </div>
@@ -196,5 +236,46 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- 사용자 정보 설정 스크립트 -->
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // 로컬스토리지에서 사용자 이름 가져오기
+    const userName = localStorage.getItem('name') || localStorage.getItem('userName') || localStorage.getItem('username');
+    
+    // 수락/취소 폼의 hidden 필드에 사용자 이름 설정
+    const acceptField = document.getElementById('acceptUsername');
+    const cancelField = document.getElementById('cancelUsername');
+    
+    if (acceptField && cancelField) {
+      if (userName) {
+        acceptField.value = userName;
+        cancelField.value = userName;
+      } else {
+        // 로컬스토리지에 이름이 없는 경우
+        const token = localStorage.getItem('token');
+        if (token) {
+          try {
+            // JWT 토큰에서 정보 추출 시도
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            if (payload.sub) {
+              acceptField.value = payload.sub;
+              cancelField.value = payload.sub;
+            } else {
+              acceptField.value = '관리자';
+              cancelField.value = '관리자';
+            }
+          } catch (e) {
+            acceptField.value = '관리자';
+            cancelField.value = '관리자';
+          }
+        } else {
+          acceptField.value = '관리자';
+          cancelField.value = '관리자';
+        }
+      }
+    }
+  });
+</script>
 </body>
 </html> 

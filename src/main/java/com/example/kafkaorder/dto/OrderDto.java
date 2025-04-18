@@ -10,6 +10,7 @@ public class OrderDto {
     private String productCode;
     private String warehouseCode;
     private int quantity;
+    private String createdBy;
 
     /**
      * 실제 Product 객체를 받아 Order 엔티티로 변환합니다.
@@ -22,6 +23,7 @@ public class OrderDto {
                 .warehouse(warehouse)
                 .quantity(this.quantity)
                 .status("CREATED")
+                .createdBy(this.createdBy)
                 .build();
         
         // 제품과 창고 정보 백업

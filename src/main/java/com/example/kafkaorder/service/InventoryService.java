@@ -13,6 +13,7 @@ import com.example.kafkaorder.repository.WarehouseRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -32,6 +33,15 @@ public class InventoryService {
         this.inventoryHistoryRepository = inventoryHistoryRepository;
         this.productRepository = productRepository;
         this.warehouseRepository = warehouseRepository;
+    }
+
+    // 제품 코드에 해당하는 모든 재고 히스토리 삭제
+    @Transactional
+    public void deleteProductHistory(Long productId) {
+        Product product = new Product();
+        product.setId(productId);
+        List<InventoryHistory> histories = inventoryHistoryRepository.findByProductOrderByCreatedAtDesc(product);
+        inventoryHistoryRepository.deleteAll(histories);
     }
 
     @Transactional
@@ -128,18 +138,16 @@ public class InventoryService {
         Optional<Product> productOptional = productRepository.findByCode(productCode);
         if (productOptional.isPresent()) {
             Product product = productOptional.get();
+            
+            // 먼저 관련된 모든 재고 히스토리 삭제
+            deleteProductHistory(product.getId());
+            
             // 해당 제품과 관련된 모든 재고 찾기
             List<Inventory> inventories = inventoryRepository.findAll().stream()
                 .filter(inventory -> inventory.getProduct().getId().equals(product.getId()))
                 .toList();
             
-            // 재고 내역 저장 (삭제)
-            for (Inventory inventory : inventories) {
-                createInventoryHistory(inventory.getProduct(), inventory.getWarehouse(), 
-                    -inventory.getQuantity(), "시스템", "삭제", "제품 삭제로 인한 재고 조정");
-            }
-            
-            // 모든 재고 삭제
+            // 재고 삭제
             inventoryRepository.deleteAll(inventories);
         }
     }
@@ -150,19 +158,47 @@ public class InventoryService {
         Optional<Warehouse> warehouseOptional = warehouseRepository.findByCode(warehouseCode);
         if (warehouseOptional.isPresent()) {
             Warehouse warehouse = warehouseOptional.get();
+            
             // 해당 창고와 관련된 모든 재고 찾기
             List<Inventory> inventories = inventoryRepository.findAll().stream()
                 .filter(inventory -> inventory.getWarehouse().getId().equals(warehouse.getId()))
                 .toList();
             
-            // 재고 내역 저장 (삭제)
+            // 필요한 정보를 미리 복사해둠
+            List<InventoryHistory> historiesToSave = new ArrayList<>();
             for (Inventory inventory : inventories) {
-                createInventoryHistory(inventory.getProduct(), inventory.getWarehouse(), 
-                    -inventory.getQuantity(), "시스템", "삭제", "창고 삭제로 인한 재고 조정");
+                Product product = inventory.getProduct();
+                
+                // 임시 객체 생성
+                Product productCopy = new Product();
+                productCopy.setId(product.getId());
+                productCopy.setCode(product.getCode());
+                productCopy.setName(product.getName());
+                
+                Warehouse warehouseCopy = new Warehouse();
+                warehouseCopy.setId(warehouse.getId());
+                warehouseCopy.setCode(warehouse.getCode());
+                warehouseCopy.setName(warehouse.getName());
+                
+                // 히스토리 객체 생성 (바로 저장하지 않음)
+                InventoryHistory history = InventoryHistory.builder()
+                    .product(productCopy)
+                    .warehouse(warehouseCopy)
+                    .quantityChange(-inventory.getQuantity())
+                    .registeredBy("시스템")
+                    .actionType("삭제")
+                    .notes("창고 삭제로 인한 재고 조정")
+                    .build();
+                    
+                historiesToSave.add(history);
             }
             
-            // 모든 재고 삭제
+            // 재고 먼저 삭제
             inventoryRepository.deleteAll(inventories);
+            inventoryRepository.flush();
+            
+            // 히스토리 저장
+            inventoryHistoryRepository.saveAll(historiesToSave);
         }
     }
 
