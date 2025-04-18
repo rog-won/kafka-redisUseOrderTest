@@ -2,9 +2,11 @@ package com.example.kafkaorder.service;
 
 import com.example.kafkaorder.dto.InventoryDto;
 import com.example.kafkaorder.entity.Inventory;
+import com.example.kafkaorder.entity.InventoryHistory;
 import com.example.kafkaorder.entity.Order;
 import com.example.kafkaorder.entity.Product;
 import com.example.kafkaorder.entity.Warehouse;
+import com.example.kafkaorder.repository.InventoryHistoryRepository;
 import com.example.kafkaorder.repository.InventoryRepository;
 import com.example.kafkaorder.repository.ProductRepository;
 import com.example.kafkaorder.repository.WarehouseRepository;
@@ -18,13 +20,16 @@ import java.util.Optional;
 public class InventoryService {
 
     private final InventoryRepository inventoryRepository;
+    private final InventoryHistoryRepository inventoryHistoryRepository;
     private final ProductRepository productRepository;
     private final WarehouseRepository warehouseRepository;
 
     public InventoryService(InventoryRepository inventoryRepository,
+                            InventoryHistoryRepository inventoryHistoryRepository,
                             ProductRepository productRepository,
                             WarehouseRepository warehouseRepository) {
         this.inventoryRepository = inventoryRepository;
+        this.inventoryHistoryRepository = inventoryHistoryRepository;
         this.productRepository = productRepository;
         this.warehouseRepository = warehouseRepository;
     }
@@ -39,11 +44,19 @@ public class InventoryService {
 
         // DTO를 엔티티로 변환
         Inventory inventory = dto.toEntity(product, warehouse);
+        
+        // 재고 내역 저장 (입고)
+        createInventoryHistory(product, warehouse, inventory.getQuantity(), dto.getRegisteredBy(), "입고", dto.getNotes());
+        
         // 기존 재고가 있는지 조회 후 업데이트 혹은 신규 생성
         List<Inventory> existingInventories = inventoryRepository.findByProductAndWarehouse(product, warehouse);
         if(!existingInventories.isEmpty()){
             Inventory existing = existingInventories.get(0);
             existing.setQuantity(existing.getQuantity() + inventory.getQuantity());
+            // 등록자 정보 유지 (기존 등록자가 없는 경우에만 새로운 등록자로 업데이트)
+            if (existing.getRegisteredBy() == null || existing.getRegisteredBy().isEmpty()) {
+                existing.setRegisteredBy(inventory.getRegisteredBy());
+            }
             return inventoryRepository.save(existing);
         } else {
             return inventoryRepository.save(inventory);
@@ -66,6 +79,10 @@ public class InventoryService {
                 quantity
             ));
         }
+        
+        // 재고 내역 저장 (출고)
+        createInventoryHistory(inventory.getProduct(), inventory.getWarehouse(), -quantity, "시스템", "출고", "주문 처리");
+        
         inventory.setQuantity(newQuantity);
         inventoryRepository.save(inventory);
     }
@@ -116,6 +133,12 @@ public class InventoryService {
                 .filter(inventory -> inventory.getProduct().getId().equals(product.getId()))
                 .toList();
             
+            // 재고 내역 저장 (삭제)
+            for (Inventory inventory : inventories) {
+                createInventoryHistory(inventory.getProduct(), inventory.getWarehouse(), 
+                    -inventory.getQuantity(), "시스템", "삭제", "제품 삭제로 인한 재고 조정");
+            }
+            
             // 모든 재고 삭제
             inventoryRepository.deleteAll(inventories);
         }
@@ -132,6 +155,12 @@ public class InventoryService {
                 .filter(inventory -> inventory.getWarehouse().getId().equals(warehouse.getId()))
                 .toList();
             
+            // 재고 내역 저장 (삭제)
+            for (Inventory inventory : inventories) {
+                createInventoryHistory(inventory.getProduct(), inventory.getWarehouse(), 
+                    -inventory.getQuantity(), "시스템", "삭제", "창고 삭제로 인한 재고 조정");
+            }
+            
             // 모든 재고 삭제
             inventoryRepository.deleteAll(inventories);
         }
@@ -140,5 +169,26 @@ public class InventoryService {
     public Inventory getInventoryById(Long id) {
         return inventoryRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("재고를 찾을 수 없습니다. ID: " + id));
+    }
+    
+    // 재고 내역 생성 메서드
+    private InventoryHistory createInventoryHistory(Product product, Warehouse warehouse, 
+                                                   int quantityChange, String registeredBy, 
+                                                   String actionType, String notes) {
+        InventoryHistory history = InventoryHistory.builder()
+                .product(product)
+                .warehouse(warehouse)
+                .quantityChange(quantityChange)
+                .registeredBy(registeredBy)
+                .actionType(actionType)
+                .notes(notes)
+                .build();
+        
+        return inventoryHistoryRepository.save(history);
+    }
+    
+    // 재고 내역 조회
+    public List<InventoryHistory> getAllInventoryHistory() {
+        return inventoryHistoryRepository.findAll();
     }
 }

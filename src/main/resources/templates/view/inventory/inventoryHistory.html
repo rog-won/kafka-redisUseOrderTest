@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>재고 히스토리</title>
+  <!-- 공통 스타일 -->
+  <th:block th:replace="fragment/fragments :: commonStyles"></th:block>
+  <style>
+    .table-container {
+      background-color: #fff;
+      border-radius: 10px;
+      padding: 1rem;
+      box-shadow: 0 0 20px rgba(0,0,0,0.05);
+      margin-bottom: 2rem;
+    }
+    .page-title {
+      margin-bottom: 1.5rem;
+      color: #333;
+      border-left: 5px solid #0d6efd;
+      padding-left: 15px;
+    }
+    .btn-action {
+      padding: 0.5rem 1.5rem;
+      border-radius: 50px;
+      font-weight: 500;
+      transition: all 0.3s;
+    }
+    .btn-action:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
+    .table-hover tbody tr:hover {
+      background-color: rgba(13, 110, 253, 0.05);
+    }
+    .badge-입고 {
+      background-color: #198754; /* 녹색 */
+    }
+    .badge-출고 {
+      background-color: #dc3545; /* 빨간색 */
+    }
+    .badge-삭제 {
+      background-color: #6c757d; /* 회색 */
+    }
+    .badge-조정 {
+      background-color: #ffc107; /* 노란색 */
+    }
+    .quantity-positive {
+      color: #198754;
+      font-weight: bold;
+    }
+    .quantity-negative {
+      color: #dc3545;
+      font-weight: bold;
+    }
+    .code-badge {
+      font-size: 0.8rem;
+      background-color: #f8f9fa;
+      color: #6c757d;
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      border: 1px solid #dee2e6;
+      font-family: monospace;
+    }
+  </style>
+</head>
+<body class="bg-light">
+<div class="container py-5">
+  <!-- 네비게이션 바 -->
+  <th:block th:replace="fragment/fragments :: navbar('inventory')"></th:block>
+
+  <!-- 페이지 제목 및 돌아가기 버튼 -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="page-title mb-0">재고 변동 히스토리</h2>
+    <a th:href="@{/inventory}" class="btn btn-outline-secondary btn-action">
+      <i class="bi bi-arrow-left me-1"></i> 재고 목록으로
+    </a>
+  </div>
+  
+  <!-- 재고 히스토리 테이블 -->
+  <div class="table-container">
+    <table class="table table-hover">
+      <thead class="table-light">
+        <tr>
+          <th>번호</th>
+          <th>날짜/시간</th>
+          <th>제품명</th>
+          <th>제품코드</th>
+          <th>창고명</th>
+          <th>수량 변동</th>
+          <th>작업 유형</th>
+          <th>등록자</th>
+          <th>메모</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr th:each="history, stat : ${historyList}">
+          <td th:text="${historyList.size() - stat.index}"></td>
+          <td th:text="${#temporals.format(history.createdAt, 'yyyy-MM-dd HH:mm')}"></td>
+          <td th:text="${history.product.name}"></td>
+          <td><span class="code-badge" th:text="${history.product.code}"></span></td>
+          <td th:text="${history.warehouse.name}"></td>
+          <td>
+            <span th:class="${history.quantityChange > 0 ? 'quantity-positive' : 'quantity-negative'}"
+                  th:text="${history.quantityChange > 0 ? '+' + history.quantityChange : history.quantityChange}"></span>
+          </td>
+          <td>
+            <span class="badge rounded-pill" 
+                  th:classappend="${'badge-' + history.actionType}"
+                  th:text="${history.actionType}"></span>
+          </td>
+          <td th:text="${history.registeredBy}"></td>
+          <td th:text="${history.notes ?: '-'}"></td>
+        </tr>
+        <tr th:if="${historyList.isEmpty()}">
+          <td colspan="9" class="text-center py-4 text-muted">등록된 재고 변동 내역이 없습니다.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- 공통 스크립트 -->
+<th:block th:replace="fragment/fragments :: commonScripts"></th:block>
+</body>
+</html> 

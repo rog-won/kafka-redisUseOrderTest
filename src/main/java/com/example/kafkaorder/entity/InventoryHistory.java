@@ -12,37 +12,45 @@ import java.time.LocalDateTime;
 
 @Builder
 @Entity
-@Table(name = "inventory")
+@Table(name = "inventory_history")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @EntityListeners(AuditingEntityListener.class)
-public class Inventory {
+public class InventoryHistory {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // 특정 제품에 대한 재고: Product 엔티티와 연관관계
-    @ManyToOne(optional = false)
+    // 제품 정보
+    @ManyToOne
     @JoinColumn(name = "product_id", nullable = false)
     private Product product;
 
-    // 특정 창고에 대한 재고: Warehouse 엔티티와 연관관계
-    @ManyToOne(optional = false)
+    // 창고 정보
+    @ManyToOne
     @JoinColumn(name = "warehouse_id", nullable = false)
     private Warehouse warehouse;
 
-    // 해당 제품의 재고 수량
+    // 수량 변경 (양수: 입고, 음수: 출고)
     @Column(nullable = false)
-    private int quantity;
-    
+    private int quantityChange;
+
     // 등록자 정보
     @Column(length = 50)
     private String registeredBy;
-    
+
+    // 작업 유형 (입고, 출고, 조정 등)
+    @Column(length = 20)
+    private String actionType;
+
+    // 메모 (필요 시)
+    @Column(length = 255)
+    private String notes;
+
     // 생성 시간
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
-}
+} 

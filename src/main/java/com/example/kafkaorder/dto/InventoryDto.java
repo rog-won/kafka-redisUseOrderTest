@@ -11,6 +11,8 @@ public class InventoryDto {
     private String productCode;
     private String warehouseCode;
     private int quantity;
+    private String registeredBy;
+    private String notes;
 
     /**
      * Product와 Warehouse 객체를 받아 Inventory 엔티티로 변환
@@ -20,6 +22,7 @@ public class InventoryDto {
                 .product(product)
                 .warehouse(warehouse)
                 .quantity(this.quantity)
+                .registeredBy(this.registeredBy)
                 .build();
     }
 }
