@@ -7,28 +7,32 @@ function checkAuthStatus() {
     const token = localStorage.getItem('token');
     const username = localStorage.getItem('username');
     const name = localStorage.getItem('name');
+    const role = localStorage.getItem('role');
     
     // 로그인 상태에 따라 UI 요소 처리
     if (token && username) {
         return {
             isLoggedIn: true,
             username: username,
-            name: name || username
+            name: name || username,
+            role: role || 'ROLE_USER'
         };
     } else {
         return {
             isLoggedIn: false,
             username: null,
-            name: null
+            name: null,
+            role: null
         };
     }
 }
 
 // 토큰 저장
-function saveAuthToken(token, username, name) {
+function saveAuthToken(token, username, name, role) {
     localStorage.setItem('token', token);
     localStorage.setItem('username', username);
     localStorage.setItem('name', name || username);
+    localStorage.setItem('role', role || 'ROLE_USER');
 }
 
 // 토큰 삭제 (로그아웃)
@@ -36,6 +40,7 @@ function clearAuthToken() {
     localStorage.removeItem('token');
     localStorage.removeItem('username');
     localStorage.removeItem('name');
+    localStorage.removeItem('role');
 }
 
 // 로그인 요청
@@ -55,7 +60,7 @@ function loginUser(loginData) {
     })
     .then(data => {
         // JWT 토큰 저장
-        saveAuthToken(data.token, data.username, data.name);
+        saveAuthToken(data.token, data.username, data.name, data.role);
         return data;
     });
 }
@@ -101,5 +106,19 @@ function redirectIfNotLoggedIn() {
     const authStatus = checkAuthStatus();
     if (!authStatus.isLoggedIn) {
         window.location.href = '/view/auth/login';
+    }
+}
+
+// 사용자 역할 이름을 한글로 변환
+function getRoleDisplayName(role) {
+    switch(role) {
+        case 'ROLE_SUPER_ADMIN':
+            return '슈퍼관리자';
+        case 'ROLE_ADMIN':
+            return '관리자';
+        case 'ROLE_USER':
+            return '일반사용자';
+        default:
+            return '사용자';
     }
 } 

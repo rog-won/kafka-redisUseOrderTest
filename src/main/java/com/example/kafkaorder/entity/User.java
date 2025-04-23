@@ -33,6 +33,9 @@ public class User {
     @Column(unique = true, nullable = false, length = 100)
     private String email;
 
+    @Column(nullable = false, length = 20)
+    private String role;
+
     @CreatedDate
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -40,5 +43,10 @@ public class User {
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
+        
+        // 기본 권한은 ROLE_USER
+        if (role == null || role.isEmpty()) {
+            role = "ROLE_USER";
+        }
     }
 } 
