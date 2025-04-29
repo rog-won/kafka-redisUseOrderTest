@@ -45,3 +45,4 @@ out/
 *.ico
 
 application-prod.properties
+.env
