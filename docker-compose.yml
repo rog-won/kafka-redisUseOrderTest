@@ -21,7 +21,7 @@ services:
 
   mysql:
     image: mysql:8.0.33
-    container_name: mysql8-container
+    container_name: mysql-8.0.33
     ports:
       - "3306:3306"
     environment:
@@ -31,3 +31,6 @@ services:
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
     volumes:
       - mysql8-volume:/var/lib/mysql
+
+volumes:
+  mysql8-volume:
