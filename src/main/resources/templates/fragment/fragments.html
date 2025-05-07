@@ -28,6 +28,12 @@
                 <li class="nav-item">
                     <a class="nav-link" th:classappend="${activeMenu == 'order'} ? 'active'" th:href="@{/orders}">주문</a>
                 </li>
+                <!-- 사용자 관리 메뉴 (슈퍼 어드민만 볼 수 있음) -->
+                <li class="nav-item" id="userManagementMenu" style="display: none;">
+                    <a class="nav-link" th:classappend="${activeMenu == 'users'} ? 'active'" th:href="@{/users}">
+                        <i class="bi bi-people-fill"></i> 사용자 관리
+                    </a>
+                </li>
             </ul>
             <!-- 로그인 사용자 정보 표시 -->
             <div class="d-flex">
@@ -77,6 +83,11 @@
                 document.getElementById('navWelcomeMessage').style.display = 'block';
                 document.getElementById('navUsername').textContent = authStatus.name;
                 document.getElementById('navLogoutBtn').style.display = 'block';
+                
+                // 슈퍼 어드민인 경우 사용자 관리 메뉴 표시
+                if (authStatus.role === 'ROLE_SUPER_ADMIN') {
+                    document.getElementById('userManagementMenu').style.display = 'block';
+                }
                 
                 // 로그아웃 버튼 이벤트
                 document.getElementById('navLogoutBtn').addEventListener('click', function() {

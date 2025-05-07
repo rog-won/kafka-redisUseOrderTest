@@ -29,6 +29,7 @@ function checkAuthStatus() {
 
 // 토큰 저장
 function saveAuthToken(token, username, name, role) {
+    console.log('토큰 저장:', { token, username, name, role });
     localStorage.setItem('token', token);
     localStorage.setItem('username', username);
     localStorage.setItem('name', name || username);
@@ -69,8 +70,12 @@ function loginUser(loginData) {
 function fetchWithAuth(url, options = {}) {
     const token = localStorage.getItem('token');
     if (!token) {
+        console.error('인증 토큰이 없습니다.');
         return Promise.reject(new Error('인증 토큰이 없습니다.'));
     }
+    
+    console.log('API 요청:', url);
+    console.log('토큰 확인:', token.substring(0, 20) + '...');
     
     // 기본 옵션에 헤더 추가
     const defaultOptions = {
@@ -89,6 +94,8 @@ function fetchWithAuth(url, options = {}) {
             ...defaultOptions.headers
         }
     };
+    
+    console.log('요청 헤더:', mergedOptions.headers);
     
     return fetch(url, mergedOptions);
 }

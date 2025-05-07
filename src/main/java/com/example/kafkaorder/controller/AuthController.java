@@ -14,6 +14,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import jakarta.servlet.http.HttpServletResponse;
+
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
@@ -39,8 +41,10 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> authenticateUser(@RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<?> authenticateUser(@RequestBody LoginRequest loginRequest, HttpServletResponse response) {
         try {
+            System.out.println("로그인 요청: " + loginRequest.getUsername());
+            
             Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                     loginRequest.getUsername(),
@@ -55,8 +59,21 @@ public class AuthController {
             org.springframework.security.core.userdetails.UserDetails userDetails =
                     (org.springframework.security.core.userdetails.UserDetails) authentication.getPrincipal();
             
-            return ResponseEntity.ok(new LoginResponse(jwt, userDetails.getUsername(), userDetails.getUsername()));
+            // 사용자 역할 정보 가져오기
+            String userRole = userService.getUserRole(userDetails.getUsername());
+            System.out.println("사용자 로그인 성공: " + userDetails.getUsername() + ", 역할: " + userRole);
+            System.out.println("권한 정보: " + authentication.getAuthorities());
+            
+            // JWT 토큰을 쿠키에도 설정
+            jakarta.servlet.http.Cookie jwtCookie = new jakarta.servlet.http.Cookie("jwt", jwt);
+            jwtCookie.setPath("/");
+            jwtCookie.setHttpOnly(true); // JavaScript에서 접근 불가
+            jwtCookie.setMaxAge(24 * 60 * 60); // 24시간
+            response.addCookie(jwtCookie);
+            
+            return ResponseEntity.ok(new LoginResponse(jwt, userDetails.getUsername(), userDetails.getUsername(), userRole));
         } catch (Exception e) {
+            e.printStackTrace();
             return ResponseEntity.badRequest().body("로그인에 실패했습니다: " + e.getMessage());
         }
     }

@@ -24,7 +24,9 @@ function setupLoginForm() {
             
             // 로그인 요청
             loginUser(loginData)
-                .then(() => {
+                .then((data) => {
+                    console.log('로그인 성공:', data);
+                    console.log('사용자 역할:', data.role);
                     // 인덱스 페이지로 이동
                     window.location.href = '/index';
                 })

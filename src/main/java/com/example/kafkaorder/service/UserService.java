@@ -115,4 +115,12 @@ public class UserService {
     public List<String> getAvailableRoles() {
         return AVAILABLE_ROLES;
     }
+    
+    /**
+     * 모든 사용자 목록을 반환합니다.
+     * 슈퍼 관리자용 기능입니다.
+     */
+    public List<User> getAllUsers() {
+        return userRepository.findAll();
+    }
 } 
