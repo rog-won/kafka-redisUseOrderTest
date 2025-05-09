@@ -71,11 +71,11 @@ public class DataInitializer {
             }
             
             // 데이터베이스의 모든 사용자 출력 (디버깅)
-            System.out.println("\n===== 현재 데이터베이스 사용자 목록 =====");
-            userRepository.findAll().forEach(u -> 
-                System.out.println("사용자: " + u.getUsername() + ", 역할: " + u.getRole())
-            );
-            System.out.println("====================================\n");
+//            System.out.println("\n===== 현재 데이터베이스 사용자 목록 =====");
+//            userRepository.findAll().forEach(u ->
+//                System.out.println("사용자: " + u.getUsername() + ", 역할: " + u.getRole())
+//            );
+//            System.out.println("====================================\n");
         };
     }
 } 
