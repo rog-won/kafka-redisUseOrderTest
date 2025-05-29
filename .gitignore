@@ -46,3 +46,4 @@ out/
 
 application-prod.properties
 .env
+IP_ACCESS_GUIDE.md
