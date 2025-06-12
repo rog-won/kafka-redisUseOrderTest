@@ -105,6 +105,37 @@
             if (authStatus.isLoggedIn && authStatus.role === 'ROLE_SUPER_ADMIN') {
                 document.getElementById('adminSection').style.display = 'block';
             }
+            
+            // 네비게이션 바 사용자 정보 업데이트
+            if (authStatus.isLoggedIn) {
+                document.getElementById('navWelcomeMessage').style.display = 'block';
+                document.getElementById('navUsername').textContent = authStatus.name;
+                
+                // 권한에 따른 배지 색상 설정
+                const roleElement = document.getElementById('navUserRole');
+                roleElement.textContent = getRoleDisplayName(authStatus.role);
+                roleElement.className = 'badge me-2'; // 기본 클래스 설정
+                
+                // 권한별 색상 적용
+                switch(authStatus.role) {
+                    case 'ROLE_SUPER_ADMIN':
+                        roleElement.classList.add('bg-danger');
+                        break;
+                    case 'ROLE_ADMIN':
+                        roleElement.classList.add('bg-warning');
+                        break;
+                    default:
+                        roleElement.classList.add('bg-info');
+                }
+                
+                document.getElementById('navLogoutBtn').style.display = 'block';
+                
+                // 로그아웃 버튼 이벤트
+                document.getElementById('navLogoutBtn').addEventListener('click', function() {
+                    clearAuthToken();
+                    window.location.href = '/view/auth/login';
+                });
+            }
         });
     </script>
 </body>

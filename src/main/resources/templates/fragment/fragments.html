@@ -38,6 +38,7 @@
             <!-- 로그인 사용자 정보 표시 -->
             <div class="d-flex">
                 <span class="navbar-text me-3 text-white" id="navWelcomeMessage" style="display: none;">
+                    <span id="navUserRole" style="font-size: 0.75em;"></span>
                     <i class="bi bi-person-circle me-1" onclick="checkAuth()" style="cursor: pointer;"></i> <span id="navUsername" onclick="checkAuth()" style="cursor: pointer;"></span>
                 </span>
                 <button id="navLogoutBtn" class="btn btn-sm btn-light" style="display: none;">
@@ -82,6 +83,24 @@
                 // 로그인 되어 있는 경우
                 document.getElementById('navWelcomeMessage').style.display = 'block';
                 document.getElementById('navUsername').textContent = authStatus.name;
+                
+                // 권한에 따른 배지 색상 설정
+                const roleElement = document.getElementById('navUserRole');
+                roleElement.textContent = getRoleDisplayName(authStatus.role);
+                roleElement.className = 'badge me-2'; // 기본 클래스 설정
+                
+                // 권한별 색상 적용
+                switch(authStatus.role) {
+                    case 'ROLE_SUPER_ADMIN':
+                        roleElement.classList.add('bg-danger');
+                        break;
+                    case 'ROLE_ADMIN':
+                        roleElement.classList.add('bg-warning');
+                        break;
+                    default:
+                        roleElement.classList.add('bg-info');
+                }
+                
                 document.getElementById('navLogoutBtn').style.display = 'block';
                 
                 // 로그아웃 버튼 이벤트
