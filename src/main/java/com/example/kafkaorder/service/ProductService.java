@@ -1,6 +1,8 @@
 package com.example.kafkaorder.service;
 
 import com.example.kafkaorder.entity.Product;
+import com.example.kafkaorder.exception.ResourceNotFoundException;
+import com.example.kafkaorder.exception.ErrorCode;
 import com.example.kafkaorder.repository.ProductRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -58,7 +60,7 @@ public class ProductService {
             // 3. 제품 삭제
             productRepository.delete(product);
         } else {
-            throw new RuntimeException("존재하지 않는 제품 코드입니다: " + code);
+            throw new ResourceNotFoundException(ErrorCode.PRODUCT_NOT_FOUND, "존재하지 않는 제품 코드입니다: " + code);
         }
     }
 }

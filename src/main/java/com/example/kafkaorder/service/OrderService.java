@@ -4,6 +4,8 @@ import com.example.kafkaorder.dto.OrderDto;
 import com.example.kafkaorder.entity.Order;
 import com.example.kafkaorder.entity.Product;
 import com.example.kafkaorder.entity.Warehouse;
+import com.example.kafkaorder.exception.ResourceNotFoundException;
+import com.example.kafkaorder.exception.ErrorCode;
 import com.example.kafkaorder.repository.OrderRepository;
 import com.example.kafkaorder.repository.ProductRepository;
 import com.example.kafkaorder.repository.WarehouseRepository;
@@ -34,9 +36,9 @@ public class OrderService {
     public Order createOrderFromDto(OrderDto dto) {
         // 제품 코드를 사용해 실제 Product 조회
         Product product = productRepository.findByCode(dto.getProductCode())
-                .orElseThrow(() -> new RuntimeException("제품을 찾을 수 없습니다: " + dto.getProductCode()));
+                .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PRODUCT_NOT_FOUND, "제품을 찾을 수 없습니다: " + dto.getProductCode()));
         Warehouse warehouse = warehouseRepository.findByCode(dto.getWarehouseCode())
-                .orElseThrow(() -> new RuntimeException("창고를 찾을 수 없습니다: " + dto.getWarehouseCode()));
+                .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.WAREHOUSE_NOT_FOUND, "창고를 찾을 수 없습니다: " + dto.getWarehouseCode()));
         
         // DTO를 엔티티로 변환
         Order order = dto.toEntity(product, warehouse);

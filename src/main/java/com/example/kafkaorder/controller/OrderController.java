@@ -2,6 +2,9 @@ package com.example.kafkaorder.controller;
 
 import com.example.kafkaorder.dto.OrderDto;
 import com.example.kafkaorder.entity.Order;
+import com.example.kafkaorder.exception.ResourceNotFoundException;
+import com.example.kafkaorder.exception.BusinessException;
+import com.example.kafkaorder.exception.ErrorCode;
 import com.example.kafkaorder.service.InventoryService;
 import com.example.kafkaorder.service.OrderService;
 import com.example.kafkaorder.service.ProductService;
@@ -41,7 +44,7 @@ public class OrderController {
     public String viewOrder(@PathVariable Long id, Model model) {
         try {
             Order order = orderService.getOrderById(id)
-                    .orElseThrow(() -> new RuntimeException("주문을 찾을 수 없습니다: " + id));
+                    .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.ORDER_NOT_FOUND, "주문을 찾을 수 없습니다: " + id));
             model.addAttribute("order", order);
             return "/view/order/orderDetail";
         } catch (Exception e) {
@@ -74,15 +77,15 @@ public class OrderController {
     public String acceptOrder(@RequestParam Long orderId, @RequestParam(required = false) String username, Model model) {
         try {
             Order order = orderService.getOrderById(orderId)
-                    .orElseThrow(() -> new RuntimeException("주문을 찾을 수 없습니다: " + orderId));
+                    .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.ORDER_NOT_FOUND, "주문을 찾을 수 없습니다: " + orderId));
             
             // 이미 처리된 주문인지 확인
             if ("ACCEPTED".equals(order.getStatus())) {
-                throw new RuntimeException("이미 수락된 주문입니다: " + orderId);
+                throw new BusinessException(ErrorCode.ORDER_ALREADY_PROCESSED, "이미 수락된 주문입니다: " + orderId);
             }
             
             if ("CANCELED".equals(order.getStatus())) {
-                throw new RuntimeException("취소된 주문은 수락할 수 없습니다: " + orderId);
+                throw new BusinessException(ErrorCode.ORDER_CANNOT_BE_CANCELED, "취소된 주문은 수락할 수 없습니다: " + orderId);
             }
             
             // 재고 확인 및 차감 처리
@@ -109,15 +112,15 @@ public class OrderController {
     public String cancelOrder(@RequestParam Long orderId, @RequestParam(required = false) String username, Model model) {
         try {
             Order order = orderService.getOrderById(orderId)
-                    .orElseThrow(() -> new RuntimeException("주문을 찾을 수 없습니다: " + orderId));
+                    .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.ORDER_NOT_FOUND, "주문을 찾을 수 없습니다: " + orderId));
             
             // 이미 처리된 주문인지 확인
             if ("CANCELED".equals(order.getStatus())) {
-                throw new RuntimeException("이미 취소된 주문입니다: " + orderId);
+                throw new BusinessException(ErrorCode.ORDER_ALREADY_PROCESSED, "이미 취소된 주문입니다: " + orderId);
             }
             
             if ("ACCEPTED".equals(order.getStatus())) {
-                throw new RuntimeException("이미 수락된 주문은 취소할 수 없습니다: " + orderId);
+                throw new BusinessException(ErrorCode.ORDER_CANNOT_BE_CANCELED, "이미 수락된 주문은 취소할 수 없습니다: " + orderId);
             }
             
             // 주문 상태 변경 및 처리 정보 업데이트

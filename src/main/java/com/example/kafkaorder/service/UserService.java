@@ -2,6 +2,8 @@ package com.example.kafkaorder.service;
 
 import com.example.kafkaorder.dto.UserDto;
 import com.example.kafkaorder.entity.User;
+import com.example.kafkaorder.exception.BusinessException;
+import com.example.kafkaorder.exception.ErrorCode;
 import com.example.kafkaorder.repository.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -31,12 +33,12 @@ public class UserService {
     public User registerUser(UserDto userDto) {
         // 아이디(username) 중복 검사
         if (userRepository.existsByUsername(userDto.getUsername())) {
-            throw new RuntimeException("이미 사용 중인 아이디입니다.");
+            throw new BusinessException(ErrorCode.USERNAME_ALREADY_EXISTS);
         }
 
         // 이메일 중복 검사
         if (userRepository.existsByEmail(userDto.getEmail())) {
-            throw new RuntimeException("이미 사용 중인 이메일입니다.");
+            throw new BusinessException(ErrorCode.EMAIL_ALREADY_EXISTS);
         }
         
         // 역할 검증 및 기본값 설정

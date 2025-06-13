@@ -1,6 +1,8 @@
 package com.example.kafkaorder.service;
 
 import com.example.kafkaorder.entity.Warehouse;
+import com.example.kafkaorder.exception.ResourceNotFoundException;
+import com.example.kafkaorder.exception.ErrorCode;
 import com.example.kafkaorder.repository.WarehouseRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,7 +43,7 @@ public class WarehouseService {
             // 2. 창고 자체 삭제
             warehouseRepository.delete(warehouse);
         } else {
-            throw new RuntimeException("존재하지 않는 창고 코드입니다: " + code);
+            throw new ResourceNotFoundException(ErrorCode.WAREHOUSE_NOT_FOUND, "존재하지 않는 창고 코드입니다: " + code);
         }
     }
     

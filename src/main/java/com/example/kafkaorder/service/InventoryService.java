@@ -6,6 +6,9 @@ import com.example.kafkaorder.entity.InventoryHistory;
 import com.example.kafkaorder.entity.Order;
 import com.example.kafkaorder.entity.Product;
 import com.example.kafkaorder.entity.Warehouse;
+import com.example.kafkaorder.exception.InsufficientStockException;
+import com.example.kafkaorder.exception.ResourceNotFoundException;
+import com.example.kafkaorder.exception.ErrorCode;
 import com.example.kafkaorder.repository.InventoryHistoryRepository;
 import com.example.kafkaorder.repository.InventoryRepository;
 import com.example.kafkaorder.repository.ProductRepository;
@@ -48,9 +51,9 @@ public class InventoryService {
     public Inventory addOrUpdateInventoryFromDto(InventoryDto dto) {
         // 서비스 계층에서 제품과 창고 조회 및 검증
         Product product = productRepository.findByCode(dto.getProductCode())
-                .orElseThrow(() -> new RuntimeException("제품을 찾을 수 없습니다: " + dto.getProductCode()));
+                .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PRODUCT_NOT_FOUND, "제품을 찾을 수 없습니다: " + dto.getProductCode()));
         Warehouse warehouse = warehouseRepository.findByCode(dto.getWarehouseCode())
-                .orElseThrow(() -> new RuntimeException("창고를 찾을 수 없습니다: " + dto.getWarehouseCode()));
+                .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.WAREHOUSE_NOT_FOUND, "창고를 찾을 수 없습니다: " + dto.getWarehouseCode()));
 
         // DTO를 엔티티로 변환
         Inventory inventory = dto.toEntity(product, warehouse);
@@ -82,12 +85,11 @@ public class InventoryService {
     public void deductInventory(Inventory inventory, int quantity) {
         int newQuantity = inventory.getQuantity() - quantity;
         if (newQuantity < 0) {
-            throw new RuntimeException(String.format(
-                "재고 부족: 제품 '%s', 현재 재고: %d, 필요 수량: %d", 
+            throw new InsufficientStockException(
                 inventory.getProduct().getCode(), 
                 inventory.getQuantity(), 
                 quantity
-            ));
+            );
         }
         
         // 재고 내역 저장 (출고)
@@ -101,28 +103,22 @@ public class InventoryService {
     public void processOrderAcceptance(Order order, String warehouseCode) {
         // 제품이나 창고가 삭제되었는지 확인
         if (order.getProduct() == null) {
-            throw new RuntimeException(String.format(
-                "제품이 삭제되어 주문을 처리할 수 없습니다: 제품 코드 '%s'", 
-                order.getProductCode()
-            ));
+            throw new ResourceNotFoundException(ErrorCode.PRODUCT_NOT_FOUND,
+                String.format("제품이 삭제되어 주문을 처리할 수 없습니다: 제품 코드 '%s'", order.getProductCode()));
         }
         
         if (order.getWarehouse() == null) {
-            throw new RuntimeException(String.format(
-                "창고가 삭제되어 주문을 처리할 수 없습니다: 창고 코드 '%s'", 
-                order.getWarehouseCode()
-            ));
+            throw new ResourceNotFoundException(ErrorCode.WAREHOUSE_NOT_FOUND,
+                String.format("창고가 삭제되어 주문을 처리할 수 없습니다: 창고 코드 '%s'", order.getWarehouseCode()));
         }
         
         // 창고와 제품으로 재고 조회
         List<Inventory> inventories = inventoryRepository.findByProductAndWarehouse(order.getProduct(), order.getWarehouse());
         
         if (inventories.isEmpty()) {
-            throw new RuntimeException(String.format(
-                "재고 정보를 찾을 수 없습니다: 제품 '%s', 창고 '%s'", 
-                order.getProduct().getCode(), 
-                warehouseCode
-            ));
+            throw new ResourceNotFoundException(ErrorCode.INVENTORY_NOT_FOUND,
+                String.format("재고 정보를 찾을 수 없습니다: 제품 '%s', 창고 '%s'", 
+                order.getProduct().getCode(), warehouseCode));
         }
         
         // 첫 번째 재고 항목 사용
