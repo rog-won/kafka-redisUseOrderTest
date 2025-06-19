@@ -1,5 +1,6 @@
 package com.example.kafkaorder.exception;
 
+import com.example.kafkaorder.service.ErrorLogService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,6 +15,8 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.servlet.ModelAndView;
 
 import jakarta.servlet.http.HttpServletRequest;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
@@ -25,6 +28,12 @@ import java.util.Map;
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
+    private final ErrorLogService errorLogService;
+
+    public GlobalExceptionHandler(ErrorLogService errorLogService) {
+        this.errorLogService = errorLogService;
+    }
+
     /**
      * 비즈니스 로직 예외 처리
      */
@@ -32,6 +41,9 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleBusinessException(BusinessException e, HttpServletRequest request) {
         log.warn("비즈니스 예외 발생 - Code: {}, Message: {}, Path: {}", 
                 e.getErrorCode().getCode(), e.getMessage(), request.getRequestURI());
+        
+        // 파일에 에러 로그 저장
+        logErrorToFile(e, request);
                 
         ErrorResponse errorResponse = ErrorResponse.builder()
                 .timestamp(LocalDateTime.now())
@@ -49,6 +61,9 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleResourceNotFoundException(ResourceNotFoundException e, HttpServletRequest request) {
+        // 파일에 에러 로그 저장
+        logErrorToFile(e, request);
+        
         ErrorResponse errorResponse = ErrorResponse.builder()
                 .timestamp(LocalDateTime.now())
                 .status(HttpStatus.NOT_FOUND.value())
@@ -115,6 +130,9 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleInsufficientStockException(InsufficientStockException e, HttpServletRequest request) {
         log.warn("재고 부족 예외 발생 - Message: {}, Path: {}", e.getMessage(), request.getRequestURI());
         
+        // 파일에 에러 로그 저장
+        logErrorToFile(e, request);
+        
         ErrorResponse errorResponse = ErrorResponse.builder()
                 .timestamp(LocalDateTime.now())
                 .status(HttpStatus.BAD_REQUEST.value())
@@ -179,6 +197,9 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleRuntimeException(RuntimeException e, HttpServletRequest request) {
         log.error("런타임 예외 발생 - Message: {}, Path: {}", e.getMessage(), request.getRequestURI(), e);
         
+        // 파일에 에러 로그 저장
+        logErrorToFile(e, request);
+        
         ErrorResponse errorResponse = ErrorResponse.builder()
                 .timestamp(LocalDateTime.now())
                 .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
@@ -198,6 +219,9 @@ public class GlobalExceptionHandler {
         log.error("예상치 못한 예외 발생 - Type: {}, Message: {}, Path: {}", 
                 e.getClass().getSimpleName(), e.getMessage(), request.getRequestURI(), e);
         
+        // 파일에 에러 로그 저장
+        logErrorToFile(e, request);
+        
         ErrorResponse errorResponse = ErrorResponse.builder()
                 .timestamp(LocalDateTime.now())
                 .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
@@ -210,10 +234,11 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * 웹 페이지 요청에 대한 예외 처리 (HTML 응답)
-     * API 요청이 아닌 웹 페이지 요청에서 발생한 예외를 처리합니다.
+     * 웹 페이지 요청에 대한 일반적인 예외 처리 (HTML 응답)
+     * API 요청이 아닌 웹 페이지 요청에서 발생한 일반적인 예외를 처리합니다.
+     * BusinessException과 ResourceNotFoundException은 별도의 API 핸들러에서 처리됩니다.
      */
-    @ExceptionHandler({BusinessException.class, ResourceNotFoundException.class})
+    @ExceptionHandler({IllegalArgumentException.class, IllegalStateException.class})
     public ModelAndView handleWebException(Exception e, HttpServletRequest request) {
         // API 요청인지 확인 (Content-Type이나 Accept 헤더로 판단)
         String accept = request.getHeader("Accept");
@@ -234,5 +259,55 @@ public class GlobalExceptionHandler {
         modelAndView.addObject("path", request.getRequestURI());
         
         return modelAndView;
+    }
+
+    /**
+     * 에러 로그를 파일에 저장하는 공통 메서드
+     */
+    private void logErrorToFile(Exception e, HttpServletRequest request) {
+        try {
+            String stackTrace = getStackTrace(e);
+            String userAgent = request.getHeader("User-Agent");
+            String clientIp = getClientIp(request);
+            
+            errorLogService.logError(
+                request.getRequestURI(),
+                request.getMethod(),
+                e.getClass().getSimpleName(),
+                e.getMessage(),
+                stackTrace,
+                userAgent,
+                clientIp
+            );
+        } catch (Exception logException) {
+            log.error("파일 로깅 중 오류 발생", logException);
+        }
+    }
+
+    /**
+     * 예외의 스택 트레이스를 문자열로 변환
+     */
+    private String getStackTrace(Exception e) {
+        StringWriter sw = new StringWriter();
+        PrintWriter pw = new PrintWriter(sw);
+        e.printStackTrace(pw);
+        return sw.toString();
+    }
+
+    /**
+     * 클라이언트 IP 주소를 추출
+     */
+    private String getClientIp(HttpServletRequest request) {
+        String xForwardedFor = request.getHeader("X-Forwarded-For");
+        if (xForwardedFor != null && !xForwardedFor.isEmpty()) {
+            return xForwardedFor.split(",")[0].trim();
+        }
+        
+        String xRealIp = request.getHeader("X-Real-IP");
+        if (xRealIp != null && !xRealIp.isEmpty()) {
+            return xRealIp;
+        }
+        
+        return request.getRemoteAddr();
     }
 } 

@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>에러 로그 관리</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .error-log-container {
+            background-color: #1e1e1e;
+            color: #fff;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            max-height: 500px;
+            overflow-y: auto;
+            border-radius: 5px;
+            padding: 15px;
+        }
+        .json-key {
+            color: #9cdcfe;
+        }
+        .json-string {
+            color: #ce9178;
+        }
+        .json-number {
+            color: #b5cea8;
+        }
+        .json-null {
+            color: #569cd6;
+        }
+        .error-entry {
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #444;
+        }
+        .error-entry:last-child {
+            border-bottom: none;
+        }
+        .log-info {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .card-header {
+            background-color: #dc3545;
+            color: white;
+        }
+        .btn-refresh {
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div th:replace="~{fragment/fragments :: navbar('error-logs')}"></div>
+
+    <div class="container-fluid mt-4">
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="mb-0">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            에러 로그 관리
+                        </h4>
+                    </div>
+                    <div class="card-body">
+                        <!-- 로그 정보 -->
+                        <div class="log-info">
+                            <h6><i class="fas fa-info-circle"></i> 로그 정보</h6>
+                            <p class="mb-1"><strong>저장 위치:</strong> <span th:text="${logDirectory}"></span></p>
+                            <p class="mb-0"><strong>사용 가능한 로그 파일:</strong> <span th:text="${#arrays.length(logFiles)}"></span>개</p>
+                        </div>
+
+                        <!-- 날짜 선택 -->
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label for="dateSelector" class="form-label">날짜 선택:</label>
+                                <input type="date" id="dateSelector" class="form-control" 
+                                       th:value="${selectedDate}" onchange="loadErrorLogs()">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="fileSelector" class="form-label">로그 파일 선택:</label>
+                                <select id="fileSelector" class="form-select" onchange="loadFromFile()">
+                                    <option value="">파일을 선택하세요</option>
+                                    <option th:each="file : ${logFiles}" th:value="${file}" th:text="${file}"></option>
+                                </select>
+                            </div>
+                            <div class="col-md-4 d-flex align-items-end">
+                                <button type="button" class="btn btn-primary" onclick="loadErrorLogs()">
+                                    <i class="fas fa-search"></i> 조회
+                                </button>
+                                <button type="button" class="btn btn-secondary btn-refresh" onclick="refreshPage()">
+                                    <i class="fas fa-sync-alt"></i> 새로고침
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- 에러 로그 표시 영역 -->
+                        <div class="mb-3">
+                            <h6>에러 로그 내용:</h6>
+                            <div id="errorLogContainer" class="error-log-container">
+                                <div th:if="${errorLogs != null}" th:utext="${#strings.replace(errorLogs, '\n', '<br>')}"></div>
+                                <div th:unless="${errorLogs != null}" class="text-muted">
+                                    날짜를 선택하여 에러 로그를 조회하세요.
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 통계 정보 -->
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="alert alert-info">
+                                    <i class="fas fa-chart-bar"></i>
+                                    <strong>로그 형식:</strong> JSON 형태로 저장되며, 각 라인이 하나의 에러 이벤트를 나타냅니다.
+                                    <br>
+                                    <strong>포함 정보:</strong> 타임스탬프, 요청 URL, HTTP 메서드, 에러 타입, 에러 메시지, 스택 트레이스, 사용자 에이전트, 클라이언트 IP
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // 에러 로그 로드 함수
+        function loadErrorLogs() {
+            const date = document.getElementById('dateSelector').value;
+            if (!date) {
+                alert('날짜를 선택해주세요.');
+                return;
+            }
+
+            const container = document.getElementById('errorLogContainer');
+            container.innerHTML = '<div class="text-center"><i class="fas fa-spinner fa-spin"></i> 로딩 중...</div>';
+
+            fetch(`/admin/error-logs/api/${date}`)
+                .then(response => response.text())
+                .then(data => {
+                    if (data && data.trim() !== '' && !data.includes('해당 날짜의 에러 로그가 없습니다')) {
+                        displayFormattedLogs(data);
+                    } else {
+                        container.innerHTML = '<div class="text-muted">해당 날짜에 에러 로그가 없습니다.</div>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    container.innerHTML = '<div class="text-danger">에러 로그를 불러오는 중 오류가 발생했습니다.</div>';
+                });
+        }
+
+        // 파일 선택으로 로그 로드
+        function loadFromFile() {
+            const fileName = document.getElementById('fileSelector').value;
+            if (!fileName) return;
+
+            // 파일명에서 날짜 추출 (error-yyyy-MM-dd.json)
+            const dateMatch = fileName.match(/error-(\d{4}-\d{2}-\d{2})\.json/);
+            if (dateMatch) {
+                document.getElementById('dateSelector').value = dateMatch[1];
+                loadErrorLogs();
+            }
+        }
+
+        // JSON 형태의 로그를 포맷팅하여 표시
+        function displayFormattedLogs(logs) {
+            const container = document.getElementById('errorLogContainer');
+            const lines = logs.trim().split('\n');
+            let formattedHtml = '';
+
+            lines.forEach((line, index) => {
+                if (line.trim()) {
+                    try {
+                        const logEntry = JSON.parse(line);
+                        formattedHtml += formatLogEntry(logEntry, index + 1);
+                    } catch (e) {
+                        formattedHtml += `<div class="error-entry"><pre>${escapeHtml(line)}</pre></div>`;
+                    }
+                }
+            });
+
+            container.innerHTML = formattedHtml || '<div class="text-muted">유효한 로그 데이터가 없습니다.</div>';
+        }
+
+        // 개별 로그 엔트리 포맷팅
+        function formatLogEntry(entry, index) {
+            return `
+                <div class="error-entry">
+                    <div class="mb-2">
+                        <span class="badge bg-danger">#${index}</span>
+                        <span class="badge bg-secondary ms-2">${entry.timestamp || 'N/A'}</span>
+                        <span class="badge bg-info ms-2">${entry.errorType || 'N/A'}</span>
+                    </div>
+                    <div class="mb-2">
+                        <strong class="json-key">URL:</strong> 
+                        <span class="json-string">${escapeHtml(entry.requestUrl || 'N/A')}</span>
+                        <span class="ms-3"><strong class="json-key">Method:</strong> 
+                        <span class="json-string">${entry.httpMethod || 'N/A'}</span></span>
+                    </div>
+                    <div class="mb-2">
+                        <strong class="json-key">Error Message:</strong><br>
+                        <span class="json-string">${escapeHtml(entry.errorMessage || 'N/A')}</span>
+                    </div>
+                    <div class="mb-2">
+                        <strong class="json-key">Client IP:</strong> 
+                        <span class="json-string">${entry.clientIp || 'N/A'}</span>
+                        <span class="ms-3"><strong class="json-key">User Agent:</strong> 
+                        <span class="json-string">${escapeHtml((entry.userAgent || 'N/A').substring(0, 100))}${(entry.userAgent && entry.userAgent.length > 100) ? '...' : ''}</span></span>
+                    </div>
+                    ${entry.stackTrace ? `
+                    <details>
+                        <summary class="json-key" style="cursor: pointer;">Stack Trace (클릭하여 펼치기)</summary>
+                        <pre style="font-size: 12px; margin-top: 10px; background-color: #2d2d2d; padding: 10px; border-radius: 3px; overflow-x: auto;">${escapeHtml(entry.stackTrace)}</pre>
+                    </details>
+                    ` : ''}
+                </div>
+            `;
+        }
+
+        // HTML 이스케이프 함수
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // 페이지 새로고침
+        function refreshPage() {
+            window.location.reload();
+        }
+
+        // 페이지 로드 시 자동으로 오늘 날짜 로그 로드
+        document.addEventListener('DOMContentLoaded', function() {
+            const dateSelector = document.getElementById('dateSelector');
+            if (dateSelector.value) {
+                loadErrorLogs();
+            }
+        });
+    </script>
+</body>
+</html> 

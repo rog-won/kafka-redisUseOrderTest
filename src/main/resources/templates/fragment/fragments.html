@@ -34,6 +34,12 @@
                         <i class="bi bi-people-fill"></i> 사용자 관리
                     </a>
                 </li>
+                <!-- 에러 로그 관리 메뉴 (슈퍼 어드민만 볼 수 있음) -->
+                <li class="nav-item" id="errorLogMenu" style="display: none;">
+                    <a class="nav-link" th:classappend="${activeMenu == 'error-logs'} ? 'active'" th:href="@{/admin/error-logs}">
+                        <i class="bi bi-exclamation-triangle-fill"></i> 에러 로그
+                    </a>
+                </li>
             </ul>
             <!-- 로그인 사용자 정보 표시 -->
             <div class="d-flex">
@@ -108,6 +114,14 @@
                     clearAuthToken();
                     window.location.href = '/view/auth/login';
                 });
+                
+                // 슈퍼 어드민인 경우 관리자 메뉴 표시
+                if (authStatus.role === 'ROLE_SUPER_ADMIN') {
+                    const userManagementMenu = document.getElementById('userManagementMenu');
+                    const errorLogMenu = document.getElementById('errorLogMenu');
+                    if (userManagementMenu) userManagementMenu.style.display = 'block';
+                    if (errorLogMenu) errorLogMenu.style.display = 'block';
+                }
             }
         });
     </script>
