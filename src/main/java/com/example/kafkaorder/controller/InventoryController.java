@@ -11,7 +11,9 @@ import com.example.kafkaorder.service.WarehouseService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
 
 import java.util.List;
 
@@ -61,12 +63,28 @@ public class InventoryController {
 
     // 재고 입고 등록 처리
     @PostMapping
-    public String createInventory(@ModelAttribute("inventoryDto") InventoryDto inventoryDto) {
-        log.info("inventoryDto: {}", inventoryDto);
+    public String createInventory(@Valid @ModelAttribute("inventoryDto") InventoryDto inventoryDto, 
+                                BindingResult bindingResult, 
+                                Model model) {
+        if (bindingResult.hasErrors()) {
+            // 검증 실패 시 폼으로 다시 돌아가기
+            model.addAttribute("products", productService.getAllProducts());
+            model.addAttribute("warehouses", warehouseService.getAllWarehouses());
+            return "/view/inventory/inventoryForm";
+        }
         
-        // 사용자가 폼에서 제공한 등록자 정보를 그대로 사용
-        inventoryService.addOrUpdateInventoryFromDto(inventoryDto);
-        return "redirect:/inventory";
+        try {
+            log.info("inventoryDto: {}", inventoryDto);
+            
+            // 사용자가 폼에서 제공한 등록자 정보를 그대로 사용
+            inventoryService.addOrUpdateInventoryFromDto(inventoryDto);
+            return "redirect:/inventory";
+        } catch (Exception e) {
+            model.addAttribute("errorMessage", e.getMessage());
+            model.addAttribute("products", productService.getAllProducts());
+            model.addAttribute("warehouses", warehouseService.getAllWarehouses());
+            return "/view/inventory/inventoryForm";
+        }
     }
 
     @GetMapping("/{id}")

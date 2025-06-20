@@ -4,12 +4,23 @@ import com.example.kafkaorder.entity.Order;
 import com.example.kafkaorder.entity.Product;
 import com.example.kafkaorder.entity.Warehouse;
 import lombok.Data;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
 
 @Data
 public class OrderDto {
+    @NotBlank(message = "제품 코드는 필수입니다")
     private String productCode;
+    
+    @NotBlank(message = "창고 코드는 필수입니다")
     private String warehouseCode;
-    private int quantity;
+    
+    @NotNull(message = "수량은 필수입니다")
+    @Min(value = 1, message = "수량은 1 이상이어야 합니다")
+    private Integer quantity;
+    
+    @NotBlank(message = "등록자는 필수입니다")
     private String createdBy;
 
     /**

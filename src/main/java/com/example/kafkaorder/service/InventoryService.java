@@ -47,7 +47,7 @@ public class InventoryService {
         inventoryHistoryRepository.deleteAll(histories);
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public Inventory addOrUpdateInventoryFromDto(InventoryDto dto) {
         // 서비스 계층에서 제품과 창고 조회 및 검증
         Product product = productRepository.findByCode(dto.getProductCode())
@@ -76,12 +76,15 @@ public class InventoryService {
         }
     }
 
+    @Transactional(readOnly = true)
     public List<Inventory> getAllInventories() {
         return inventoryRepository.findAll();
     }
 
+
+
     // 재고 차감 (주문 수락 시)
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void deductInventory(Inventory inventory, int quantity) {
         int newQuantity = inventory.getQuantity() - quantity;
         if (newQuantity < 0) {
@@ -99,7 +102,7 @@ public class InventoryService {
         inventoryRepository.save(inventory);
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void processOrderAcceptance(Order order, String warehouseCode) {
         // 제품이나 창고가 삭제되었는지 확인
         if (order.getProduct() == null) {
@@ -112,8 +115,8 @@ public class InventoryService {
                 String.format("창고가 삭제되어 주문을 처리할 수 없습니다: 창고 코드 '%s'", order.getWarehouseCode()));
         }
         
-        // 창고와 제품으로 재고 조회
-        List<Inventory> inventories = inventoryRepository.findByProductAndWarehouse(order.getProduct(), order.getWarehouse());
+        // 락을 적용한 재고 조회 (동시성 제어)
+        List<Inventory> inventories = inventoryRepository.findByProductAndWarehouseWithLock(order.getProduct(), order.getWarehouse());
         
         if (inventories.isEmpty()) {
             throw new ResourceNotFoundException(ErrorCode.INVENTORY_NOT_FOUND,
@@ -123,6 +126,15 @@ public class InventoryService {
         
         // 첫 번째 재고 항목 사용
         Inventory inventory = inventories.get(0);
+        
+        // 재고 부족 체크
+        if (inventory.getQuantity() < order.getQuantity()) {
+            throw new InsufficientStockException(
+                inventory.getProduct().getCode(), 
+                inventory.getQuantity(), 
+                order.getQuantity()
+            );
+        }
         
         // 재고 차감
         deductInventory(inventory, order.getQuantity());
@@ -220,6 +232,7 @@ public class InventoryService {
     }
     
     // 재고 내역 조회
+    @Transactional(readOnly = true)
     public List<InventoryHistory> getAllInventoryHistory() {
         return inventoryHistoryRepository.findAll();
     }

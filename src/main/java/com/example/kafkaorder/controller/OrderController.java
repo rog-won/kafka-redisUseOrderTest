@@ -11,7 +11,9 @@ import com.example.kafkaorder.service.ProductService;
 import com.example.kafkaorder.service.WarehouseService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
 
 import java.time.LocalDateTime;
 
@@ -66,9 +68,23 @@ public class OrderController {
 
     // 주문 생성 처리
     @PostMapping("/new")
-    public String createOrder(@ModelAttribute OrderDto orderDto) {
-        Order order = orderService.createOrderFromDto(orderDto);
-        return "redirect:/orders";
+    public String createOrder(@Valid @ModelAttribute OrderDto orderDto, BindingResult bindingResult, Model model) {
+        if (bindingResult.hasErrors()) {
+            // 검증 실패 시 폼으로 다시 돌아가기
+            model.addAttribute("products", productService.getAllProducts());
+            model.addAttribute("warehouses", warehouseService.getAllWarehouses());
+            return "/view/order/orderForm";
+        }
+        
+        try {
+            Order order = orderService.createOrderFromDto(orderDto);
+            return "redirect:/orders";
+        } catch (Exception e) {
+            model.addAttribute("errorMessage", e.getMessage());
+            model.addAttribute("products", productService.getAllProducts());
+            model.addAttribute("warehouses", warehouseService.getAllWarehouses());
+            return "/view/order/orderForm";
+        }
     }
 
     //TODO
@@ -76,27 +92,8 @@ public class OrderController {
     @PostMapping("/accept")
     public String acceptOrder(@RequestParam Long orderId, @RequestParam(required = false) String username, Model model) {
         try {
-            Order order = orderService.getOrderById(orderId)
-                    .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.ORDER_NOT_FOUND, "주문을 찾을 수 없습니다: " + orderId));
-            
-            // 이미 처리된 주문인지 확인
-            if ("ACCEPTED".equals(order.getStatus())) {
-                throw new BusinessException(ErrorCode.ORDER_ALREADY_PROCESSED, "이미 수락된 주문입니다: " + orderId);
-            }
-            
-            if ("CANCELED".equals(order.getStatus())) {
-                throw new BusinessException(ErrorCode.ORDER_CANNOT_BE_CANCELED, "취소된 주문은 수락할 수 없습니다: " + orderId);
-            }
-            
-            // 재고 확인 및 차감 처리
-            inventoryService.processOrderAcceptance(order, order.getWarehouse().getCode());
-            
-            // 주문 상태 변경 및 처리 정보 업데이트
-            order.setStatus("ACCEPTED");
-            order.setStatusChangedAt(LocalDateTime.now());
-            order.setStatusChangedBy(username != null ? username : "관리자");
-            orderService.saveOrder(order);
-            
+            // 트랜잭션이 적용된 서비스 메서드 사용
+            orderService.processOrderAcceptance(orderId, username);
             return "redirect:/orders";
         } catch (Exception e) {
             // 예외 발생 시 에러 메시지 표시
@@ -111,24 +108,8 @@ public class OrderController {
     @PostMapping("/cancel")
     public String cancelOrder(@RequestParam Long orderId, @RequestParam(required = false) String username, Model model) {
         try {
-            Order order = orderService.getOrderById(orderId)
-                    .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.ORDER_NOT_FOUND, "주문을 찾을 수 없습니다: " + orderId));
-            
-            // 이미 처리된 주문인지 확인
-            if ("CANCELED".equals(order.getStatus())) {
-                throw new BusinessException(ErrorCode.ORDER_ALREADY_PROCESSED, "이미 취소된 주문입니다: " + orderId);
-            }
-            
-            if ("ACCEPTED".equals(order.getStatus())) {
-                throw new BusinessException(ErrorCode.ORDER_CANNOT_BE_CANCELED, "이미 수락된 주문은 취소할 수 없습니다: " + orderId);
-            }
-            
-            // 주문 상태 변경 및 처리 정보 업데이트
-            order.setStatus("CANCELED");
-            order.setStatusChangedAt(LocalDateTime.now());
-            order.setStatusChangedBy(username != null ? username : "관리자");
-            orderService.saveOrder(order);
-            
+            // 트랜잭션이 적용된 서비스 메서드 사용
+            orderService.processOrderCancellation(orderId, username);
             return "redirect:/orders";
         } catch (Exception e) {
             // 예외 발생 시 에러 메시지 표시

@@ -12,7 +12,9 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
 
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -31,7 +33,14 @@ public class AuthController {
     }
 
     @PostMapping("/signup")
-    public ResponseEntity<?> registerUser(@RequestBody UserDto userDto) {
+    public ResponseEntity<?> registerUser(@Valid @RequestBody UserDto userDto, BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            StringBuilder errorMessage = new StringBuilder("입력값 검증 실패: ");
+            bindingResult.getFieldErrors().forEach(error -> 
+                errorMessage.append(String.format("%s: %s; ", error.getField(), error.getDefaultMessage())));
+            return ResponseEntity.badRequest().body(errorMessage.toString());
+        }
+        
         try {
             User user = userService.registerUser(userDto);
             return ResponseEntity.ok("회원가입이 완료되었습니다.");
@@ -41,7 +50,16 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> authenticateUser(@RequestBody LoginRequest loginRequest, HttpServletResponse response) {
+    public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest, 
+                                            BindingResult bindingResult, 
+                                            HttpServletResponse response) {
+        if (bindingResult.hasErrors()) {
+            StringBuilder errorMessage = new StringBuilder("입력값 검증 실패: ");
+            bindingResult.getFieldErrors().forEach(error -> 
+                errorMessage.append(String.format("%s: %s; ", error.getField(), error.getDefaultMessage())));
+            return ResponseEntity.badRequest().body(errorMessage.toString());
+        }
+        
         try {
             System.out.println("로그인 요청: " + loginRequest.getUsername());
             
