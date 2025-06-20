@@ -51,6 +51,12 @@ public class SecurityConfig {
                 .ignoringRequestMatchers("/api/auth/**")
                 .ignoringRequestMatchers("/users/api/**")
                 .ignoringRequestMatchers("/css/**", "/js/**", "/images/**")
+                .ignoringRequestMatchers("/product/**")
+                .ignoringRequestMatchers("/warehouses/**")
+                .ignoringRequestMatchers("/inventory/**")
+                .ignoringRequestMatchers("/orders/**")
+                .ignoringRequestMatchers("/users/**")
+                .ignoringRequestMatchers("/admin/**")
             )
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth

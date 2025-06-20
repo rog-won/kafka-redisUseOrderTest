@@ -13,6 +13,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import jakarta.servlet.http.HttpServletRequest;
 import java.io.PrintWriter;
@@ -259,6 +260,26 @@ public class GlobalExceptionHandler {
         modelAndView.addObject("path", request.getRequestURI());
         
         return modelAndView;
+    }
+
+    /**
+     * 정적 리소스를 찾을 수 없는 경우 처리 (favicon.ico 등)
+     * 브라우저가 자동으로 요청하는 리소스에 대해서는 조용히 처리
+     */
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<Void> handleNoResourceFoundException(NoResourceFoundException e, HttpServletRequest request) {
+        String path = request.getRequestURI();
+        
+        // favicon.ico 등 일반적인 브라우저 요청에 대해서는 로그를 남기지 않음
+        if (path.equals("/favicon.ico") || path.equals("/apple-touch-icon.png") || 
+            path.equals("/robots.txt") || path.equals("/sitemap.xml")) {
+            // 조용히 404 응답만 반환
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        
+        // 기타 정적 리소스 오류는 간단한 로그만 남김
+        log.debug("정적 리소스 찾을 수 없음: {}", path);
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
     /**
