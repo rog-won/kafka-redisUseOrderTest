@@ -1,5 +1,6 @@
 package com.example.kafkaorder.controller;
 
+import com.example.kafkaorder.dto.ProductDto;
 import com.example.kafkaorder.entity.Product;
 import com.example.kafkaorder.service.FileStorageService;
 import com.example.kafkaorder.service.ProductService;
@@ -9,8 +10,10 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import jakarta.validation.Valid;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -39,27 +42,35 @@ public class ProductController {
     // 신규 제품 등록 폼 호출
     @GetMapping("/new")
     public String newProductForm(Model model) {
-        model.addAttribute("product", new Product());
+        model.addAttribute("productDto", new ProductDto());
         return "/view/product/productForm"; // templates/productForm.html
     }
 
     // 제품 등록 처리 - 이미지 업로드 기능 추가
     @PostMapping
-    public String createProduct(@ModelAttribute Product product, 
-                               @RequestParam(value = "image", required = false) MultipartFile image) {
-        // 이미지 파일이 제공되었으면 저장
-        if (image != null && !image.isEmpty()) {
-            try {
-                String fileName = fileStorageService.storeFile(image);
-                product.setImagePath(fileName);
-            } catch (IOException e) {
-                e.printStackTrace();
-                // 에러 처리 로직 추가 가능
-            }
+    public String createProduct(@Valid @ModelAttribute ProductDto productDto, 
+                               BindingResult bindingResult,
+                               @RequestParam(value = "image", required = false) MultipartFile image,
+                               Model model) {
+        if (bindingResult.hasErrors()) {
+            // 검증 실패 시 폼으로 다시 돌아가기
+            return "/view/product/productForm";
         }
         
-        productService.saveProduct(product);
-        return "redirect:/product/list";
+        try {
+            // 이미지 파일이 제공되었으면 저장
+            if (image != null && !image.isEmpty()) {
+                String fileName = fileStorageService.storeFile(image);
+                productDto.setImagePath(fileName);
+            }
+            
+            Product product = productDto.toEntity();
+            productService.saveProduct(product);
+            return "redirect:/product/list";
+        } catch (Exception e) {
+            model.addAttribute("errorMessage", e.getMessage());
+            return "/view/product/productForm";
+        }
     }
     
     // 제품 삭제 처리 - ID 대신 코드 사용

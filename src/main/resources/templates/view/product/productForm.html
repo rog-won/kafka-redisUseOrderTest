@@ -86,23 +86,47 @@
   
   <!-- 제품 등록 폼 -->
   <div class="form-container">
-    <form th:action="@{/product}" th:object="${product}" method="post" enctype="multipart/form-data">
+    <!-- 에러 메시지 표시 -->
+    <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+      <i class="bi bi-exclamation-triangle-fill me-2"></i>
+      <span th:text="${errorMessage}"></span>
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    
+    <form th:action="@{/product}" th:object="${productDto}" method="post" enctype="multipart/form-data">
       <div class="mb-3">
-        <label for="name" class="form-label">제품명</label>
-        <input type="text" class="form-control" id="name" th:field="*{name}" required placeholder="제품명을 입력하세요">
+        <label for="code" class="form-label">제품 코드 (선택사항)</label>
+        <input type="text" class="form-control" id="code" th:field="*{code}" 
+               th:class="${#fields.hasErrors('code')} ? 'form-control is-invalid' : 'form-control'"
+               placeholder="비워두면 자동 생성됩니다">
+        <div th:if="${#fields.hasErrors('code')}" class="invalid-feedback" th:errors="*{code}"></div>
       </div>
       
       <div class="mb-3">
-        <label for="price" class="form-label">가격</label>
+        <label for="name" class="form-label">제품명 *</label>
+        <input type="text" class="form-control" id="name" th:field="*{name}" 
+               th:class="${#fields.hasErrors('name')} ? 'form-control is-invalid' : 'form-control'"
+               placeholder="제품명을 입력하세요">
+        <div th:if="${#fields.hasErrors('name')}" class="invalid-feedback" th:errors="*{name}"></div>
+      </div>
+      
+      <div class="mb-3">
+        <label for="price" class="form-label">가격 *</label>
         <div class="input-group">
-          <input type="number" class="form-control" id="price" th:field="*{price}" step="0.01" required placeholder="가격을 입력하세요">
+          <input type="number" class="form-control" id="price" th:field="*{price}" 
+                 th:class="${#fields.hasErrors('price')} ? 'form-control is-invalid' : 'form-control'"
+                 placeholder="가격을 입력하세요">
           <span class="input-group-text">원</span>
         </div>
+        <div th:if="${#fields.hasErrors('price')}" class="invalid-feedback" th:errors="*{price}"></div>
       </div>
       
       <div class="mb-3">
         <label for="description" class="form-label">상세 설명</label>
-        <textarea class="form-control" id="description" th:field="*{description}" rows="5" placeholder="제품에 대한 상세 설명을 입력하세요"></textarea>
+        <textarea class="form-control" id="description" th:field="*{description}" 
+                  th:class="${#fields.hasErrors('description')} ? 'form-control is-invalid' : 'form-control'"
+                  rows="5" placeholder="제품에 대한 상세 설명을 입력하세요"></textarea>
+        <div th:if="${#fields.hasErrors('description')}" class="invalid-feedback" th:errors="*{description}"></div>
       </div>
       
       <div class="mb-4">
